@@ -1,0 +1,23 @@
+#ignore these
+*
+
+#include these
+!.gitignore
+!Makefile
+!/src
+!/src/*.c
+!/include
+!/include/*.h
+!/doc
+!/doc/*.pdf
+!/doc/*.txt
+!/lib
+!/lib/Makefile
+!/lib/include
+!/lib/include/*.h
+!/lib/src
+!/lib/src/*.c
+!/trash
+!/trash/*
+!/test
+!/test/*
