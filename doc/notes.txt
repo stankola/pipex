@@ -1,0 +1,12 @@
+unistd.h
+ read, write,
+, perror,
+strerror, access, dup, dup2,
+execve, exit, fork, pipe,
+unlink, wait, waitpid
+
+stdlib.h
+malloc, free
+
+sdtio.h
+open, close,
