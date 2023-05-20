@@ -1,4 +1,14 @@
-# TODO: 42 header
+#******************************************************************************#
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: tsankola <marvin@42.fr>                    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2023/05/20 20:58:24 by tsankola          #+#    #+#              #
+#    Updated: 2023/05/20 20:58:26 by tsankola         ###   ########.fr        #
+#                                                                              #
+#******************************************************************************#
 
 NAME = pipex
 
@@ -28,8 +38,8 @@ _LIB =	libft.a
 LIB = $(patsubst %, $(LIBDIR)/%, $(_LIB))
 LIB_NAME = $(patsubst lib%.a, %, $(_LIB))
 
-_INC =	pipex.h
-INC = $(patsubst %, $(INCDIR)/%, $(_INC))
+#_INC =	pipex.h
+#INC = $(patsubst %, $(INCDIR)/%, $(_INC))
 
 _LIB_INC = libft.h
 LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
@@ -40,6 +50,9 @@ all: $(NAME)
 
 sanitizer: $(OBJ)
 	$(CC) $(CFLAGS) $(SFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
+
+suppress: $(OBJ)
+	$(CC) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

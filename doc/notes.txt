@@ -1,12 +1,47 @@
-unistd.h
- read, write,
-, perror,
-strerror, access, dup, dup2,
-execve, exit, fork, pipe,
-unlink, wait, waitpid
+libraries:
 
-stdlib.h
-malloc, free
+	unistd.h
+	read, write (files, streams)
+	close (delete a descriptor, ie. close the file)
+	access (determine accessibility of file)
+	dup, dup2 (duplicate open file descriptor)
+	execve (execute a file)
+	fork (create a new process)
+	pipe (create an interprocess channel)
+	unlink (remove a directory entry, ie. delete a file)
 
-sdtio.h
-open, close,
+	sys/wait.h
+	wait (waits until any one child process terminates)
+	waitpid (waits for a specified process to be stopped or terminated)
+
+	stdlib.h
+	malloc, free, exit
+
+	fcntl.h
+	open
+
+	stdio.h
+	perror (function maps the error number accessed through the symbol errno to 
+	   a language-dependent error message)
+
+	string.h
+	strerror (function returns a pointer to a string that
+       describes the error code passed in the argument errnum)
+
+
+ < file1 cmd1 | cmd2 > file2
+
+	< redirecting input
+	> redirecting output
+	| pipe between two commands, ie. redirect output from left command to input of right command
+	>> append output
+	<< Redirect input until word (ie. << WORD file)
+0 = stdin
+1 = stdout
+2 = stderr
+
+> = redirect stdout
+2> = redirect stderr
+2>&1 redirect stderr to stdout
+
+https://jameshfisher.com/2017/02/05/how-do-i-use-execve-in-c/
