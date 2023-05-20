@@ -51,9 +51,6 @@ all: $(NAME)
 sanitizer: $(OBJ)
 	$(CC) $(CFLAGS) $(SFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
 
-suppress: $(OBJ)
-	$(CC) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
-
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
