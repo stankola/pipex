@@ -86,7 +86,7 @@ static int	print_string(const char *s, va_list iterator, int fd)
 
 	format_specifier_found = 0;
 	print_count = 0;
-	while (*s != '\0')
+	while (*s != '\0' && print_count >= 0)
 	{
 		if (!format_specifier_found && *s != '%')
 			print_count += ft_putchar_fd(*s++, fd);
