@@ -16,8 +16,11 @@
 
 char	*run_cmd(char *cmd, char *input[])
 {
+	int	pid;
 	ft_printf("%s\n", input[0]);
-	execve(cmd, input, NULL);
+	pid = fork();
+	ft_printf("%d\n", pid);
+	//execve(cmd, input, NULL);
 	return (NULL);
 }
 
