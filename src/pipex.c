@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <sys/stat.h>
+#include <string.h>
 #include "libft.h"
 #ifndef CHILD_END
 # define CHILD_END 1
@@ -23,82 +23,97 @@
 # define PARENT_END 0
 #endif
 
-// Probably useless.
-void	append_string_array(char **arr[], char *str)
+char	*get_errmsg()
 {
-	char	**new_arr;
-	int		size;
-	int		i;
-
-	size = 0;
-	while ((*arr)[size] != NULL)
-		size++;
-	new_arr = malloc(sizeof(char **) * size + 2);
-	if (new_arr == NULL)
-		return ;
-	i = 0;
-	while (i < size)
-	{
-		new_arr[i] = (*arr)[i];
-		ft_printf("%s\n", new_arr[i]);
-		i++;
-	}
-	new_arr[i++] = str;
-	new_arr[i] = NULL;
-	free(*arr);
-	*arr = new_arr;
-}
-
-void	child(int fildes)
-{
-	close(fildes);
-	exit(EXIT_SUCCESS);
-}
-
-void	parent(int fildes)
-{
-	char	*buff;
-	int		rdcount;
-	pid_t	pid;
-
-	buff = malloc (sizeof(char) * 80);
-//	ft_fprintf(fildes,"I am not a child!\n");
-	pid = wait(NULL);
-	ft_printf("The wait is over, woken by %d\n", pid);
-	rdcount = read(fildes, buff, 80);
-	ft_printf("Read %d chars\n", rdcount);
-	ft_printf("This is not a child, I hear %s\n", buff);
-	free(buff);
-
-}
-
-char	*run_cmd(char *cmd, char *argv[], int fd)
-{
-	pid_t	pid;
 	int		fildes[2];
+	int		pid;
+	char	*chrbfr;
 
-	if (pipe(fildes) < 0)
-	{
-		perror("Piping failure");
-		return (NULL);
-	}
+	chrbfr = malloc(sizeof(char) * 80);
+	pipe(fildes);		// Can fail
 	pid = fork();
-	if (pid == 0)
-	{
-		ft_printf("Child is %d fd %d\n", getpid(), fildes[CHILD_END]);
-		close(fildes[PARENT_END]);
-		if (dup2(fildes[CHILD_END], STDOUT_FILENO) < 0 || dup2(fd, STDIN_FILENO) < 0)
-			return (NULL);	// How to properly handle this situation? Should fildes[CHILD_END] be closed?
-		execve(cmd, argv, NULL);
-		perror(NULL);
-	}
-	else if (pid > 0)
+	if (pid > 0)
 	{
 		close(fildes[CHILD_END]);
-		parent(fildes[PARENT_END]);
+		wait(NULL);
+		read(fildes[PARENT_END], chrbfr, 80);
+		return (chrbfr);
+	}
+	else if (pid == 0)
+	{
+		close(fildes[PARENT_END]);
+		close(STDERR_FILENO);
+		dup(fildes[CHILD_END]);
+		perror(NULL);
+		exit(0);
 	}
 	else
-		perror("Forking failure");
+		perror("Forking hell, I don't know what to do!");
+	return (NULL);
+}
+
+char	**get_path_env_value()
+{
+	char	**value;
+	char	**iterator;
+
+	iterator = __environ;
+	while (*iterator != NULL)
+	{
+		if (ft_strnstr(*iterator, "PATH", ft_strlen("PATH")))
+		{
+//			ft_printf("Found somthing %s\nlength %d", *iterator, ft_strlen(key));
+//			ft_printf("Value %s\n", &((*iterator)[ft_strlen(key) + 1]));
+			value = ft_split(&((*iterator)[ft_strlen("PATH") + 1]), ':');
+			return (value);
+		}
+		iterator++;
+	}
+	return (NULL);
+}
+
+char	*find_path(char *exe)
+{
+	char	**env_path;
+	char	*s;
+	char	*path;
+	int		i;
+	char	**path_iterator;
+
+	ft_printf("finding %s\n", exe);
+	env_path = get_path_env_value();
+	path = NULL;
+	path_iterator = NULL;
+	while (path_iterator == NULL || (*path_iterator) != NULL)
+	{
+		if (access(exe, X_OK))
+		{
+			s = get_errmsg();
+			ft_printf("errmsg %s\n", s);
+			if (ft_strnstr(s, "Permission denied", 80))		// is this good? I think the error message might be environment dependent
+			{
+				free(s);
+				return (NULL);
+			}
+			else if (ft_strnstr(s, "No such file or directory", 80))
+			{
+				continue ;
+			}
+			else
+				return (s);
+			free(s);
+		}
+		else
+		{
+			s = ft_strjoin(path, exe);
+			free(path);
+			return (s);
+		}
+	}
+//		read(fd2, chbuf, 80);
+
+//		ft_printf("OK?\n", chbuf);
+//		ft_printf("%s\n", chbuf);
 	return (NULL);
 }
 
@@ -115,13 +130,11 @@ void	child_laborer(char **cmds, int input, int output)
 	if (pid > 0)
 	{
 		wait(NULL);
-//		close(output);
-//		close(input);
 		exit (0);
 	}
 	else if (pid == 0)
 	{
-		execve(cmds[0], cmds, NULL);
+		execve(cmds[0], cmds, __environ);	// Check the environ variable name
 		perror("exec fail");
 	}
 	else
@@ -178,6 +191,14 @@ int	main(int argc, char *argv[])
 	int		fd2;
 	int		i;
 
+	i = 0;
+	char **vals = get_path_env_value("PATH");
+	while (vals[i] != NULL)
+		ft_printf("%s\n", vals[i++]);
+//	while (__environ[i] != NULL)			// Check the environ variable name
+//		ft_printf("%s\n", __environ[i++]);
+//	find_path(argv[2]);
+	exit(1012);
 	if (argc < 5)
 		return (1);	// Some error message here
 	cmds = ft_calloc(sizeof(char **), (argc - 2));

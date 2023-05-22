@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include "libft.h"
 
+// Looks up to len characters for needle in haystack and returns a pointer to
+// the start of it. Returns NULL if not found.
 char	*ft_strnstr(const char *haystack, const char *needle, size_t len)
 {
 	unsigned int	i;
