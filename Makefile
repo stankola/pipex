@@ -26,6 +26,8 @@ OBJDIR = obj
 
 INCDIR = include
 
+TEST1 = test/1.i "/usr/bin/cat" "/usr/bin/wc -l" 1.o
+
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
 _SRC = pipex.c
@@ -44,12 +46,18 @@ LIB_NAME = $(patsubst lib%.a, %, $(_LIB))
 _LIB_INC = libft.h
 LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
 
-.PHONY: all
+.PHONY: all test clean
 
 all: $(NAME)
 
 sanitizer: $(OBJ)
 	$(CC) $(CFLAGS) $(SFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
+
+suppress: $(SRC) $(LIB) $(INC)
+	$(CC) $(SRC) -I$(INCDIR) -I$(LIB_INCDIR) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
+
+test: $(NAME)
+	$(addprefix ./, $(NAME)) $(TEST1)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

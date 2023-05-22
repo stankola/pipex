@@ -41,6 +41,11 @@ libraries:
 	>> append output
 	<< Redirect input until word (ie. << WORD file)
 
+How to do this? -rw-rw-r-- which seems to be default file access for new file with >
+	mode_t bits are defined in sys/stat.h which is forbidden.
+	Could use literal numbers but that's not good practice.
+	Could define _XOPEN_SOURCE to use different standard but that may not be allowed. 
+	MacOS might use different standard than Linux?
 
 0 = stdin
 1 = stdout
@@ -52,3 +57,17 @@ libraries:
 
 https://jameshfisher.com/2017/02/05/how-do-i-use-execve-in-c/
 https://stackoverflow.com/questions/7292642/grabbing-output-from-exec
+
+
+Test cases:
+- Output directory missing (should fail)
+- Output directory access missing
+- Output file missing (should create a new file)
+- Output file write access missing
+- Input file missing
+- Input file read permission missing
+- Any command is missing
+- Command is in path but different directory
+- Command execute rights missing
+- Command directory access missing
+- Disk space full
