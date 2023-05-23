@@ -16,134 +16,73 @@
 #include <fcntl.h>
 #include <string.h>
 #include "libft.h"
-#ifndef CHILD_END
-# define CHILD_END 1
-#endif
-#ifndef PARENT_END
-# define PARENT_END 0
+#include "pipex.h"
+#ifndef PIPEX_READ_BUFFER
+# define PIPEX_READ_BUFFER 1
 #endif
 
-char	*get_errmsg()
+void	read_stdin(char* limiter, int output)
 {
-	int		fildes[2];
-	int		pid;
-	char	*chrbfr;
-
-	chrbfr = malloc(sizeof(char) * 80);
-	pipe(fildes);		// Can fail
-	pid = fork();
-	if (pid > 0)
-	{
-		close(fildes[CHILD_END]);
-		wait(NULL);
-		read(fildes[PARENT_END], chrbfr, 80);
-		return (chrbfr);
-	}
-	else if (pid == 0)
-	{
-		close(fildes[PARENT_END]);
-		close(STDERR_FILENO);
-		dup(fildes[CHILD_END]);
-		perror(NULL);
-		exit(0);
-	}
-	else
-		perror("Forking hell, I don't know what to do!");
-	return (NULL);
-}
-
-char	**get_path_env_value()
-{
-	char	**value;
-	char	**iterator;
-
-	iterator = __environ;
-	while (*iterator != NULL)
-	{
-		if (ft_strnstr(*iterator, "PATH", ft_strlen("PATH")))
-		{
-//			ft_printf("Found somthing %s\nlength %d", *iterator, ft_strlen(key));
-//			ft_printf("Value %s\n", &((*iterator)[ft_strlen(key) + 1]));
-			value = ft_split(&((*iterator)[ft_strlen("PATH") + 1]), ':');
-			return (value);
-		}
-		iterator++;
-	}
-	return (NULL);
-}
-
-char	*find_path(char *exe)
-{
-	char	**env_path;
-	char	*s;
-	char	*path;
+	char	*limit_check;
+	char	*readbuf;
 	int		i;
-	char	**path_iterator;
 
-	ft_printf("finding %s\n", exe);
-	env_path = get_path_env_value();
-	path = NULL;
-	path_iterator = NULL;
-	while (path_iterator == NULL || (*path_iterator) != NULL)
+	readbuf = malloc(sizeof(PIPEX_READ_BUFFER));	//TODO consider non-ascii characters
+	while (1)
 	{
-		if (access(exe, X_OK))
+		limit_check = limiter;
+		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
+		while (*limit_check != '\0' && *readbuf == *(limit_check))
 		{
-			s = get_errmsg();
-			ft_printf("errmsg %s\n", s);
-			if (ft_strnstr(s, "Permission denied", 80))		// is this good? I think the error message might be environment dependent
-			{
-				free(s);
-				return (NULL);
-			}
-			else if (ft_strnstr(s, "No such file or directory", 80))
-			{
-				continue ;
-			}
-			else
-				return (s);
-			free(s);
+			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
+			limit_check++;
 		}
-		else
-		{
-			s = ft_strjoin(path, exe);
-			free(path);
-			return (s);
-		}
+		if (*limit_check == '\0')
+			break ;
+		i = (limit_check - limiter);
+		while (limit_check != limiter)
+			write(output, (limiter + i - (--limit_check - limiter)), 1);
+		write(output, readbuf, 1);
 	}
-//		read(fd2, chbuf, 80);
-
-//		ft_printf("OK?\n", chbuf);
-//		ft_printf("%s\n", chbuf);
-	return (NULL);
+	free(readbuf);
 }
 
-void	child_laborer(char **cmds, int input, int output)
+void	pipe_runner(char **cmds, int input, int output)
 {
-	int	pid;
+	int		pid;
+	char	*cmd;
 
 //	ft_fprintf(STDERR_FILENO, "Child here, input %d output %d cmd %s\n", input, output, cmds[0]);
-	close(STDIN_FILENO);
-	input = dup(input);
-	close(STDOUT_FILENO);
-	output = dup(output);
+	cmd = find_cmd(cmds[0]);
+	if (cmd == NULL)
+	{
+		ft_fprintf(STDERR_FILENO, "Can't find %s\n", cmds[0]);
+		exit(-1);
+	}
+	dup2(input, STDIN_FILENO);
+	dup2(output, STDOUT_FILENO);
+	ft_fprintf(STDERR_FILENO, "%s in %d ou %d\n", cmd, input, output);
 	pid = fork();
 	if (pid > 0)
 	{
 		wait(NULL);
+		free(cmd);
 		exit (0);
 	}
 	else if (pid == 0)
 	{
-		execve(cmds[0], cmds, __environ);	// Check the environ variable name
+		execve(cmd, cmds, __environ);	// Check the environ variable name
+		ft_fprintf(STDERR_FILENO, "%s\n", cmd);
 		perror("exec fail");
+		exit(-1);
 	}
-	else
-		perror("Child fork fail");
+	perror("Child fork fail");
+	free(cmd);
 	exit(-1);
 }
 
 // returns fd for output
-int	do_stuff(int input_fd, int output_fd, char ***cmds)
+int	pipe_starter(int input_fd, int output_fd, char ***cmds)
 {
 	int	pipe_fds[2];
 	int	pid;
@@ -168,10 +107,9 @@ int	do_stuff(int input_fd, int output_fd, char ***cmds)
 //			ft_printf("Child is %d\n", getpid());
 			close(pipe_fds[PARENT_END]);							// Could fail
 			if (*(cmds + 1) == NULL)
-				child_laborer(*cmds, input_fd, output_fd);
+				pipe_runner(*cmds, input_fd, output_fd);
 			else
-				child_laborer(*cmds, input_fd, pipe_fds[CHILD_END]);
-			exit(0);
+				pipe_runner(*cmds, input_fd, pipe_fds[CHILD_END]);
 		}
 		else
 		{
@@ -180,49 +118,72 @@ int	do_stuff(int input_fd, int output_fd, char ***cmds)
 		}
 		cmds++;
 	}
-	return (input_fd);
+	waitpid(pid, NULL, 0);		// Wait until the last child process is done before returning and closing parent end of the pipes(?)
+	return (input_fd);		// This return value seems unnecessary
+}
+
+void	pipe_limiter(char *limiter, int output, char ***cmds)
+{
+	int		pid;
+	int		pipe_fds[2];
+	int		stdin;
+
+	ft_fprintf(STDERR_FILENO, "limiter %s\n", limiter);
+	if (pipe(pipe_fds) < 0)
+	{
+		perror("Pipes break!");
+		return ;
+	}
+	ft_fprintf(STDERR_FILENO, "%d %d \n", pipe_fds[CHILD_END], pipe_fds[PARENT_END]);
+	pid = fork();
+	if (pid > 0)
+	{
+		close(pipe_fds[CHILD_END]);
+		read_stdin(limiter, pipe_fds[PARENT_END]);
+	}
+	else if (pid == 0)
+	{
+		close(pipe_fds[PARENT_END]);
+		pipe_starter(pipe_fds[CHILD_END], output, cmds);
+		exit(0);
+	}
+	else
+		ft_fprintf(STDERR_FILENO, "FORKING FAILURES!");
+	waitpid(pid, NULL, 0);
+}
+
+char	***get_cmds(char *argv[], int argc)
+{
+	int		i;
+	char	***cmds;
+	
+	i = 0;
+	cmds = ft_calloc(sizeof(char **), (argc + 1));
+	while (i < argc)
+	{
+		cmds[i] = ft_split(argv[i], ' ');
+		i++;
+	}
+	return (cmds);
 }
 
 int	main(int argc, char *argv[])
 {
 	char	***cmds;
-	char	**files;
-	int		fd1;
-	int		fd2;
-	int		i;
+	int		fds[2];
 
-	i = 0;
-	char **vals = get_path_env_value("PATH");
-	while (vals[i] != NULL)
-		ft_printf("%s\n", vals[i++]);
-//	while (__environ[i] != NULL)			// Check the environ variable name
-//		ft_printf("%s\n", __environ[i++]);
-//	find_path(argv[2]);
-	exit(1012);
 	if (argc < 5)
-		return (1);	// Some error message here
-	cmds = ft_calloc(sizeof(char **), (argc - 2));
-	if (cmds == NULL)
-		return (1);
-	files = malloc(sizeof(char *) * 2);
-	if (files == NULL)
+		return (1);	// Some error message here ??
+	if (ft_strncmp("here_doc", argv[1], 8) != 0)
 	{
-		free(cmds);
-		return (1);
+		fds[0] = open(argv[1], O_RDONLY);
+		fds[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);	// This seems to be ok. bash also seems to create the target file beforehand
+		cmds = get_cmds(&argv[2], argc - 3);
+		pipe_starter(fds[0], fds[1], cmds);
+		return (0);
 	}
-	i = 1;
-	while (++i < argc - 1)
-		cmds[i - 2] = ft_split(argv[i], ' ');
-	files[0] = argv[1];
-	files[1] = argv[argc - 1];
-	fd1 = open(files[0], O_RDONLY);
-	fd2 = open(files[1], O_WRONLY | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
-//	char *chbuf = ft_calloc(sizeof(char), (80));
-	int fd3 = do_stuff(fd1, fd2, cmds);
-	ft_printf("fd1 %d fd2 %d fd3 %d\n", fd1, fd2, fd3);
-//	int chars_read = read(fd3, chbuf, 80);
-//	ft_printf("Read %d characters\n", chars_read);
-//	chars_read = write(fd2, chbuf, chars_read);
-//	ft_printf("Wrote %d characters\n", chars_read);
+	fds[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);	// This seems to be ok. bash also seems to create the target file beforehand
+	cmds = get_cmds(&argv[3], argc - 4);
+	pipe_limiter(argv[2], fds[1], cmds);
 	return (0);
 }

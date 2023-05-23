@@ -60,6 +60,9 @@ https://stackoverflow.com/questions/7292642/grabbing-output-from-exec
 
 
 Test cases:
+- Executable file in local directory
+- Executable file in path
+- Executable file not in path but in different directory
 - Output directory missing (should fail)
 - Output directory access missing
 - Output file missing (should create a new file)
@@ -71,3 +74,21 @@ Test cases:
 - Command execute rights missing
 - Command directory access missing
 - Disk space full
+- Multiple pipes
+- broken link (Not sure how this should be handled. Execve returns different error than bash)
+x Symlinks
+x Hard links
+x Standard test
+x Big (>1MB, enough?) input
+x First command hangs for awhile
+- filename with space
+- filename with illegal characters, such as |
+
+input variations:
+	Input file:
+		filename
+		./filename
+		../filename
+		/filename
+		folder/filename
+		/usr/bin/filename
