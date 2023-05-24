@@ -21,32 +21,6 @@
 # define PIPEX_READ_BUFFER 1
 #endif
 
-void	read_stdin(char* limiter, int output)
-{
-	char	*limit_check;
-	char	*readbuf;
-	int		i;
-
-	readbuf = malloc(sizeof(PIPEX_READ_BUFFER));	//TODO consider non-ascii characters
-	while (1)
-	{
-		limit_check = limiter;
-		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
-		while (*limit_check != '\0' && *readbuf == *(limit_check))
-		{
-			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
-			limit_check++;
-		}
-		if (*limit_check == '\0')
-			break ;
-		i = (limit_check - limiter);
-		while (limit_check != limiter)
-			write(output, (limiter + i - (--limit_check - limiter)), 1);
-		write(output, readbuf, 1);
-	}
-	free(readbuf);
-}
-
 void	pipe_runner(char **cmds, int input, int output)
 {
 	int		pid;
@@ -56,12 +30,11 @@ void	pipe_runner(char **cmds, int input, int output)
 	cmd = find_cmd(cmds[0]);
 	if (cmd == NULL)
 	{
-		ft_fprintf(STDERR_FILENO, "Can't find %s\n", cmds[0]);
+		perror(cmds[0]);
 		exit(-1);
 	}
 	dup2(input, STDIN_FILENO);
 	dup2(output, STDOUT_FILENO);
-	ft_fprintf(STDERR_FILENO, "%s in %d ou %d\n", cmd, input, output);
 	pid = fork();
 	if (pid > 0)
 	{
@@ -71,9 +44,9 @@ void	pipe_runner(char **cmds, int input, int output)
 	}
 	else if (pid == 0)
 	{
-		execve(cmd, cmds, __environ);	// Check the environ variable name
-		ft_fprintf(STDERR_FILENO, "%s\n", cmd);
-		perror("exec fail");
+		if (access(cmd, X_OK) == 0)
+			execve(cmd, cmds, __environ);	// Check the environ variable name
+		perror(cmd);
 		exit(-1);
 	}
 	perror("Child fork fail");
@@ -122,34 +95,59 @@ int	pipe_starter(int input_fd, int output_fd, char ***cmds)
 	return (input_fd);		// This return value seems unnecessary
 }
 
+void	read_stdin(char* limiter, int output)
+{
+	char	*limit_check;
+	char	*readbuf;
+	long int		i;
+
+	readbuf = malloc(sizeof(PIPEX_READ_BUFFER));
+	while (1)
+	{
+		limit_check = limiter;
+		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
+		while (*limit_check != '\0' && *readbuf == *(limit_check))
+		{
+			*limit_check = *readbuf;
+			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
+			limit_check++;
+		}
+		if (*limit_check == '\0')
+			break ;
+		i = 0;
+		while (limit_check != &(limiter[i]))
+			write(output, &(limiter[i++]), 1);
+		write(output, readbuf, 1);
+	}
+	free(readbuf);
+}
+
 void	pipe_limiter(char *limiter, int output, char ***cmds)
 {
 	int		pid;
 	int		pipe_fds[2];
 	int		stdin;
 
-	ft_fprintf(STDERR_FILENO, "limiter %s\n", limiter);
 	if (pipe(pipe_fds) < 0)
 	{
 		perror("Pipes break!");
 		return ;
 	}
-	ft_fprintf(STDERR_FILENO, "%d %d \n", pipe_fds[CHILD_END], pipe_fds[PARENT_END]);
 	pid = fork();
 	if (pid > 0)
 	{
 		close(pipe_fds[CHILD_END]);
-		read_stdin(limiter, pipe_fds[PARENT_END]);
+		pipe_starter(pipe_fds[PARENT_END], output, cmds);
+		waitpid(pid, NULL, 0);
 	}
 	else if (pid == 0)
 	{
 		close(pipe_fds[PARENT_END]);
-		pipe_starter(pipe_fds[CHILD_END], output, cmds);
+		read_stdin(limiter, pipe_fds[CHILD_END]);
 		exit(0);
 	}
 	else
 		ft_fprintf(STDERR_FILENO, "FORKING FAILURES!");
-	waitpid(pid, NULL, 0);
 }
 
 char	***get_cmds(char *argv[], int argc)
@@ -176,14 +174,22 @@ int	main(int argc, char *argv[])
 		return (1);	// Some error message here ??
 	if (ft_strncmp("here_doc", argv[1], 8) != 0)
 	{
-		fds[0] = open(argv[1], O_RDONLY);
 		fds[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);	// This seems to be ok. bash also seems to create the target file beforehand
+		if (fds[1] < 0)
+			perror(argv[argc - 1]);
+		fds[0] = open(argv[1], O_RDONLY);
+		if (fds[0] < 0)
+			perror(argv[1]);
 		cmds = get_cmds(&argv[2], argc - 3);
 		pipe_starter(fds[0], fds[1], cmds);
+		free_strarrayarray(&cmds);
 		return (0);
 	}
 	fds[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);	// This seems to be ok. bash also seems to create the target file beforehand
+	if (fds[1] < 0)
+		perror(argv[argc - 1]);
 	cmds = get_cmds(&argv[3], argc - 4);
 	pipe_limiter(argv[2], fds[1], cmds);
+	free_strarrayarray(&cmds);
 	return (0);
 }

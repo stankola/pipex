@@ -74,7 +74,7 @@ Test cases:
 - Command execute rights missing
 - Command directory access missing
 - Disk space full
-- Multiple pipes
+* Multiple pipes	(tested manually)
 - broken link (Not sure how this should be handled. Execve returns different error than bash)
 x Symlinks
 x Hard links

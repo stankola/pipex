@@ -9,16 +9,16 @@
 #  define PARENT_END 0
 # endif
 
-char	*get_errmsg();
-
 char	**get_env_path_value();
 
 char	*find_cmd(char *exe);
 
 char	*get_full_path(char const *path, char const *file);
 
-int		check_file_execution_access(char *location);
-
 int		is_directory(char *file);
+
+void	free_strarray(char ***array);
+
+void	free_strarrayarray(char ****array);
 
 #endif

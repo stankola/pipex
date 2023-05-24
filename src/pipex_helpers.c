@@ -3,40 +3,10 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 #include "pipex.h"
 #include "libft.h"
-#ifndef ERR_MSG_LENGTH
-# define ERR_MSG_LENGTH 80
-#endif
-
-char	*get_errmsg()
-{
-	int		fildes[2];
-	int		pid;
-	char	*chrbfr;
-
-	chrbfr = malloc(sizeof(char) * ERR_MSG_LENGTH);
-	pipe(fildes);		// Can fail
-	pid = fork();
-	if (pid > 0)
-	{
-		close(fildes[CHILD_END]);
-		wait(NULL);
-		read(fildes[PARENT_END], chrbfr, ERR_MSG_LENGTH);
-		return (chrbfr);
-	}
-	else if (pid == 0)
-	{
-		close(fildes[PARENT_END]);
-		close(STDERR_FILENO);
-		dup(fildes[CHILD_END]);
-		perror(NULL);
-		exit(0);
-	}
-	else
-		perror("Forking hell, I don't know what to do!");
-	return (NULL);
-}
 
 char	**get_env_path_value()
 {
@@ -48,7 +18,6 @@ char	**get_env_path_value()
 	{
 		if (ft_strnstr(*iterator, "PATH", ft_strlen("PATH")))
 		{
-//			ft_fprintf(STDERR_FILENO, "%s\n", *iterator);
 			value = ft_split(&((*iterator)[ft_strlen("PATH") + 1]), ':');
 			return (value);
 		}
@@ -64,8 +33,11 @@ char	*find_cmd(char *exe)
 	char	*full_location;
 
 	if (ft_strchr(exe, '/'))
+	{
 		if (access(exe, F_OK) == 0)
 			return (ft_strdup(exe));
+		return (NULL);
+	}
 	env_path = get_env_path_value();
 	path_iterator = env_path;
 	while (*path_iterator != NULL)
@@ -75,12 +47,17 @@ char	*find_cmd(char *exe)
 		if (access(full_location, F_OK) == 0)		// found
 		{
 			if (is_directory(full_location))
+			{
+				free(full_location);
 				continue ;
-			free(env_path);
+			}
+			free_strarray(&env_path);
 			return (full_location);
 		}
+		free(full_location);
 	}
-	free(env_path);		//Memory leak waiting to be fixed
+	free_strarray(&env_path);
+//	free(env_path);		//Memory leak waiting to be fixed
 	return (NULL);
 }
 
@@ -105,25 +82,6 @@ char	*get_full_path(char const *path, char const *file)
 	return (result);
 }
 
-int	check_file_execution_access(char *location)
-{
-	char	*s;
-
-	if (access(location, X_OK))
-	{
-		s = get_errmsg(); // is this bad? I think the error message might be environment dependent
-		if (! ft_strnstr(s, "No such file or directory", ERR_MSG_LENGTH))
-		{
-			ft_fprintf(STDERR_FILENO, "%s: %s\n", location, s);
-			free(s);
-			return(-1);
-		}
-		free(s);
-		return (-2);
-	}
-	return (0);
-}
-
 int	is_directory(char *file)
 {
 	int	fd;
@@ -135,4 +93,29 @@ int	is_directory(char *file)
 		return (1);
 	}
 	return (0);
+}
+
+void	free_strarray(char ***array)
+{
+	char	**i;
+
+	i = *array;
+	while (*i != NULL)
+		free(*(i++));
+	free(*array);
+	*array = NULL;
+}
+
+void	free_strarrayarray(char ****array)
+{
+	char	***i;
+
+	i = *array;
+	while (*i != NULL)
+	{
+		free_strarray(i);
+		i++;
+	}
+	free(*array);
+	*array = NULL;
 }
