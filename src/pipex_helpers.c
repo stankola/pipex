@@ -43,21 +43,15 @@ char	*find_cmd(char *exe)
 	while (*path_iterator != NULL)
 	{
 		full_location = get_full_path(*(path_iterator++), exe);
-//		ft_printf("Trying %s\n", full_location);
 		if (access(full_location, F_OK) == 0)		// found
-		{
-			if (is_directory(full_location))
+			if (! is_directory(full_location))
 			{
-				free(full_location);
-				continue ;
+				free_strarray(&env_path);
+				return (full_location);
 			}
-			free_strarray(&env_path);
-			return (full_location);
-		}
 		free(full_location);
 	}
 	free_strarray(&env_path);
-//	free(env_path);		//Memory leak waiting to be fixed
 	return (NULL);
 }
 

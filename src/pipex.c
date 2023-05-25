@@ -15,85 +15,12 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "libft.h"
 #include "pipex.h"
-#ifndef PIPEX_READ_BUFFER
-# define PIPEX_READ_BUFFER 1
+#ifndef PIPEX_READ_BUFFER_SIZE
+# define PIPEX_READ_BUFFER_SIZE 1
 #endif
-
-void	pipe_runner(char **cmds, int input, int output)
-{
-	int		pid;
-	char	*cmd;
-
-//	ft_fprintf(STDERR_FILENO, "Child here, input %d output %d cmd %s\n", input, output, cmds[0]);
-	cmd = find_cmd(cmds[0]);
-	if (cmd == NULL)
-	{
-		perror(cmds[0]);
-		exit(-1);
-	}
-	dup2(input, STDIN_FILENO);
-	dup2(output, STDOUT_FILENO);
-	pid = fork();
-	if (pid > 0)
-	{
-		wait(NULL);
-		free(cmd);
-		exit (0);
-	}
-	else if (pid == 0)
-	{
-		if (access(cmd, X_OK) == 0)
-			execve(cmd, cmds, __environ);	// Check the environ variable name
-		perror(cmd);
-		exit(-1);
-	}
-	perror("Child fork fail");
-	free(cmd);
-	exit(-1);
-}
-
-// returns fd for output
-int	pipe_starter(int input_fd, int output_fd, char ***cmds)
-{
-	int	pipe_fds[2];
-	int	pid;
-
-	while (*(cmds) != NULL)
-	{
-		if (pipe(pipe_fds) < 0)
-		{
-			perror("The pipes break!");
-			return (-1);
-		}
-		pid = fork();
-		if (pid > 0)
-		{
-			close(pipe_fds[CHILD_END]);								// Could fail
-//			ft_printf("The wait is over, woken by %d\n", waitpid(pid, NULL, 0));
-			input_fd = pipe_fds[PARENT_END];
-//			ft_fprintf(STDERR_FILENO, "Parent here, fd %d fd %d\n", pipe_fds[PARENT_END], input_fd);
-		}
-		else if (pid == 0)
-		{
-//			ft_printf("Child is %d\n", getpid());
-			close(pipe_fds[PARENT_END]);							// Could fail
-			if (*(cmds + 1) == NULL)
-				pipe_runner(*cmds, input_fd, output_fd);
-			else
-				pipe_runner(*cmds, input_fd, pipe_fds[CHILD_END]);
-		}
-		else
-		{
-			perror("The forks break!");
-			return (-1);
-		}
-		cmds++;
-	}
-	waitpid(pid, NULL, 0);		// Wait until the last child process is done before returning and closing parent end of the pipes(?)
-	return (input_fd);		// This return value seems unnecessary
-}
 
 void	read_stdin(char* limiter, int output)
 {
@@ -101,15 +28,15 @@ void	read_stdin(char* limiter, int output)
 	char	*readbuf;
 	long int		i;
 
-	readbuf = malloc(sizeof(PIPEX_READ_BUFFER));
+	readbuf = malloc(sizeof(PIPEX_READ_BUFFER_SIZE));
 	while (1)
 	{
 		limit_check = limiter;
-		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
+		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER_SIZE);
 		while (*limit_check != '\0' && *readbuf == *(limit_check))
 		{
 			*limit_check = *readbuf;
-			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER);
+			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER_SIZE);
 			limit_check++;
 		}
 		if (*limit_check == '\0')
@@ -120,34 +47,7 @@ void	read_stdin(char* limiter, int output)
 		write(output, readbuf, 1);
 	}
 	free(readbuf);
-}
-
-void	pipe_limiter(char *limiter, int output, char ***cmds)
-{
-	int		pid;
-	int		pipe_fds[2];
-	int		stdin;
-
-	if (pipe(pipe_fds) < 0)
-	{
-		perror("Pipes break!");
-		return ;
-	}
-	pid = fork();
-	if (pid > 0)
-	{
-		close(pipe_fds[CHILD_END]);
-		pipe_starter(pipe_fds[PARENT_END], output, cmds);
-		waitpid(pid, NULL, 0);
-	}
-	else if (pid == 0)
-	{
-		close(pipe_fds[PARENT_END]);
-		read_stdin(limiter, pipe_fds[CHILD_END]);
-		exit(0);
-	}
-	else
-		ft_fprintf(STDERR_FILENO, "FORKING FAILURES!");
+	exit(0);
 }
 
 char	***get_cmds(char *argv[], int argc)
@@ -165,31 +65,85 @@ char	***get_cmds(char *argv[], int argc)
 	return (cmds);
 }
 
+int	forking_pipe(char **cmds, int pipe_fds[], char *io_files[],int pipe_case,
+	char *limiter)
+{
+	int	pid;
+	
+	pid = fork();
+	if (pid > 0)
+	{
+		close(pipe_fds[CHILD_END]);
+		return (pipe_fds[PARENT_END]);
+	}
+	else if (pid == 0)
+	{
+		close(pipe_fds[PARENT_END]);
+		if (pipe_case == ppx_file_input)
+			pipe_file_input(cmds, io_files[PIPEX_IN], pipe_fds[CHILD_END]);
+		else if (pipe_case == ppx_here_input)
+			read_stdin(limiter, pipe_fds[CHILD_END]);
+		else if (pipe_case == ppx_midpoint)
+			pipe_command(cmds, pipe_fds[2], pipe_fds[CHILD_END]);
+		else if (pipe_case == ppx_out_append)
+			pipe_file_output_append(cmds, pipe_fds[2], io_files[PIPEX_OUT]);
+		else if (pipe_case == ppx_out_trunc)
+			pipe_file_output_trunc(cmds, pipe_fds[2], io_files[PIPEX_OUT]);
+	}
+	else
+		perror(NULL);
+	return (-1);
+}
+
+int	pipe_master(char ***cmds, char *files[], char *limit)
+{
+	int	fds[3];
+	int	i;
+
+	i = -1;
+	while (cmds[++i] != NULL)
+	{
+		if (fds[2] < 0 || pipe(fds) < 0)
+		{
+			perror(NULL);
+			return (-1);
+		}
+		else if (limit && i == 0)
+			fds[2] = forking_pipe(cmds[i], fds, files, ppx_here_input, limit);
+		else if (i == 0)
+			fds[2] = forking_pipe(cmds[i], fds, files, ppx_file_input, NULL);
+		else if (limit && cmds[i + 1] == NULL)
+			fds[2] = forking_pipe(cmds[i], fds, files, ppx_out_append, limit);
+		else if (cmds[i + 1] == NULL)
+			fds[2] = forking_pipe(cmds[i], fds, files, ppx_out_trunc, NULL);
+		else
+			fds[2] = forking_pipe(cmds[i], fds, files, ppx_midpoint, NULL);
+	}
+	while ((wait(NULL)) >= 0);
+	return (0);
+}
+
 int	main(int argc, char *argv[])
 {
 	char	***cmds;
-	int		fds[2];
+	char	*io_files[2];
 
 	if (argc < 5)
-		return (1);	// Some error message here ??
+	{
+		ft_fprintf(STDERR_FILENO, "Wrong number of arguments\n");
+		return (-1);
+	}
+	io_files[PIPEX_OUT] = argv[argc - 1];
 	if (ft_strncmp("here_doc", argv[1], 8) != 0)
 	{
-		fds[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);	// This seems to be ok. bash also seems to create the target file beforehand
-		if (fds[1] < 0)
-			perror(argv[argc - 1]);
-		fds[0] = open(argv[1], O_RDONLY);
-		if (fds[0] < 0)
-			perror(argv[1]);
+		io_files[PIPEX_IN] = argv[1];
 		cmds = get_cmds(&argv[2], argc - 3);
-		pipe_starter(fds[0], fds[1], cmds);
+		pipe_master(cmds, io_files, NULL);
 		free_strarrayarray(&cmds);
 		return (0);
 	}
-	fds[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);	// This seems to be ok. bash also seems to create the target file beforehand
-	if (fds[1] < 0)
-		perror(argv[argc - 1]);
-	cmds = get_cmds(&argv[3], argc - 4);
-	pipe_limiter(argv[2], fds[1], cmds);
+	cmds = get_cmds(&argv[2], argc - 3);
+	pipe_master(cmds, io_files, argv[2]);
 	free_strarrayarray(&cmds);
 	return (0);
 }

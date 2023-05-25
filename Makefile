@@ -35,7 +35,7 @@ TEST6 = test/6.brokelink.i cat "wc -l" 6.out
 
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
-_SRC = pipex.c pipex_helpers.c
+_SRC = pipex.c pipex_helpers.c pipes.c
 SRC = $(patsubst %, $(SRCDIR)/%, $(_SRC))
 
 _OBJ = $(patsubst %.c, %.o, $(_SRC))
