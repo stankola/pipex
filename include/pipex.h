@@ -2,11 +2,11 @@
 
 #ifndef PIPEX_H
 # define PIPEX_H
-# ifndef CHILD_END
-#  define CHILD_END 1
+# ifndef PIPE_READ
+#  define PIPE_READ 0
 # endif
-# ifndef PARENT_END
-#  define PARENT_END 0
+# ifndef PIPE_WRITE
+#  define PIPE_WRITE 1
 # endif
 #ifndef PIPEX_IN
 # define PIPEX_IN 0

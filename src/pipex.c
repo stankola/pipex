@@ -65,68 +65,88 @@ char	***get_cmds(char *argv[], int argc)
 	return (cmds);
 }
 
-int	forking_pipe(char **cmds, int pipe_fds[], char *io_files[],int pipe_case,
-	char *limiter)
+int	forking_pipe(char **cmds, int pipe_write, int pipe_read, int prev_pipe, char *files[],
+	int pipe_case, char *limit)
 {
 	int	pid;
 	
 	pid = fork();
 	if (pid > 0)
 	{
-		close(pipe_fds[CHILD_END]);
-		return (pipe_fds[PARENT_END]);
+		close(pipe_write);
+//		close(write_fd);
+//		fds[2] = fds[PIPE_WRITE];
+		return (pipe_read);
+//		return (pipe_fds[PIPE_WRITE]);
 	}
 	else if (pid == 0)
 	{
-		close(pipe_fds[PARENT_END]);
+		close(pipe_read);
 		if (pipe_case == ppx_file_input)
-			pipe_file_input(cmds, io_files[PIPEX_IN], pipe_fds[CHILD_END]);
+			pipe_file_input(cmds, files[PIPEX_IN], pipe_write);
 		else if (pipe_case == ppx_here_input)
-			read_stdin(limiter, pipe_fds[CHILD_END]);
+			read_stdin(limit, pipe_write);
 		else if (pipe_case == ppx_midpoint)
-			pipe_command(cmds, pipe_fds[2], pipe_fds[CHILD_END]);
+			pipe_command(cmds, prev_pipe, pipe_write);
 		else if (pipe_case == ppx_out_append)
-			pipe_file_output_append(cmds, pipe_fds[2], io_files[PIPEX_OUT]);
+			pipe_file_output_append(cmds, prev_pipe, files[PIPEX_OUT]);
 		else if (pipe_case == ppx_out_trunc)
-			pipe_file_output_trunc(cmds, pipe_fds[2], io_files[PIPEX_OUT]);
+			pipe_file_output_trunc(cmds, prev_pipe, files[PIPEX_OUT]);
 	}
 	else
-		perror(NULL);
+		perror("1");
 	return (-1);
 }
 
 int	pipe_master(char ***cmds, char *files[], char *limit)
 {
-	int	fds[3];
+	int	fds[2];
 	int	i;
+//	int	last_pid;
+	int	prev_output;
+//	fds = malloc (sizeof(int) * 4);
+//	ft_fprintf(STDERR_FILENO, "FD  PTR %p\n", &fds[3]);
 
 	i = -1;
+//	fds[2] = __INT_MAX__;
 	while (cmds[++i] != NULL)
 	{
-		if (fds[2] < 0 || pipe(fds) < 0)
+		if (pipe(fds) < 0)
 		{
-			perror(NULL);
+			perror("3");
 			return (-1);
 		}
-		else if (limit && i == 0)
-			fds[2] = forking_pipe(cmds[i], fds, files, ppx_here_input, limit);
+		if (limit && i == 0)
+			prev_output = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_here_input, limit);
 		else if (i == 0)
-			fds[2] = forking_pipe(cmds[i], fds, files, ppx_file_input, NULL);
+			prev_output = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_file_input, NULL);
 		else if (limit && cmds[i + 1] == NULL)
-			fds[2] = forking_pipe(cmds[i], fds, files, ppx_out_append, limit);
+			prev_output = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_out_append, limit);
 		else if (cmds[i + 1] == NULL)
-			fds[2] = forking_pipe(cmds[i], fds, files, ppx_out_trunc, NULL);
+			prev_output = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_out_trunc, NULL);
 		else
-			fds[2] = forking_pipe(cmds[i], fds, files, ppx_midpoint, NULL);
+			prev_output = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_midpoint, NULL);
+		ft_fprintf(STDERR_FILENO, "prev-Output %d\n", prev_output);
+//		prev_output = fds[PIPE_READ];
 	}
-	while ((wait(NULL)) >= 0);
-	return (0);
+//	ft_printf("last_pid %d \n", last_pid);
+//	waitpid(last_pid, &i, 0);
+//	ft_printf("closing %d (%d %d %d %d)\n", fds[3], fds[0], fds[1], fds[2], fds[3]);
+//	close(fds[3]);
+//	last_pid +=0;
+	while ((i = wait(NULL)) >= 0)
+	{
+//		close(3);
+		ft_printf("wait %d \n", i);
+	}
+	return (i);
 }
 
 int	main(int argc, char *argv[])
 {
 	char	***cmds;
 	char	*io_files[2];
+//	int		result;
 
 	if (argc < 5)
 	{
