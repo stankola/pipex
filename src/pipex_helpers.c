@@ -12,8 +12,9 @@ char	**get_env_path_value()
 {
 	char	**value;
 	char	**iterator;
+	extern char **environ;
 
-	iterator = __environ;
+	iterator = environ; /// babababa
 	while (*iterator != NULL)
 	{
 		if (ft_strnstr(*iterator, "PATH", ft_strlen("PATH")))
@@ -80,7 +81,7 @@ int	is_directory(char *file)
 {
 	int	fd;
 
-	fd = open(file, __O_DIRECTORY);
+	fd = open(file, O_DIRECTORY);
 	if (fd >= 0)
 	{
 		close(fd);

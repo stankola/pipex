@@ -26,7 +26,7 @@ static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 		dup2(input, STDIN_FILENO);
 		dup2(output, STDOUT_FILENO);
 		if (access(cmd, X_OK) == 0)
-			execve(cmd, cmds, __environ);	// Check the environ variable name
+			execve(cmd, cmds, NULL);	// Check the environ variable name
 //		perror(cmd);
 		exit(-1);
 	}
@@ -41,7 +41,7 @@ void	pipe_file_input(char **cmds, char *input_file, int output_fd)
 	int		input_fd;
 
 	input_fd = open(input_file, O_RDONLY);
-	ft_fprintf(STDERR_FILENO, "opened %s got fd %d\n", input_file, input_fd);
+//	ft_fprintf(STDERR_FILENO, "opened %s got fd %d\n", input_file, input_fd);
 	if (input_fd < 0)
 		perror(input_file);
 	else

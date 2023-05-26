@@ -26,7 +26,7 @@ OBJDIR = obj
 
 INCDIR = include
 
-TEST1 = test/1.i "/usr/bin/cat" "/usr/bin/wc -l" 1.out
+TEST1 = test/1.i "/bin/cat" "/usr/bin/wc -l" 1.out
 TEST2 = test/2.i sort "wc -m" 2.out
 TEST3 = test/1.i "test/3.sleeptest.sh" "wc -m" 3.out
 TEST4 = test/4.hardlink.i cat "wc -l" 4.out
