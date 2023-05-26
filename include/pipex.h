@@ -1,5 +1,14 @@
-// TODO header
-
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipex.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/26 15:26:23 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 15:26:28 by tsankola         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #ifndef PIPEX_H
 # define PIPEX_H
 # ifndef PIPE_READ
@@ -8,14 +17,14 @@
 # ifndef PIPE_WRITE
 #  define PIPE_WRITE 1
 # endif
-#ifndef PIPEX_IN
-# define PIPEX_IN 0
-#endif
-#ifndef PIPEX_OUT
-# define PIPEX_OUT 1
-#endif
+# ifndef PIPEX_IN
+#  define PIPEX_IN 0
+# endif
+# ifndef PIPEX_OUT
+#  define PIPEX_OUT 1
+# endif
 
-enum	e_pipe_cases
+enum	e_pipex_cases
 {
 	ppx_file_input,
 	ppx_here_input,
@@ -24,16 +33,7 @@ enum	e_pipe_cases
 	ppx_out_trunc
 };
 
-typedef struct	s_pipex
-{
-	char	**cmds;
-	int		*fds;
-	char	**files;
-	char	*limit;
-	int		position;
-}				t_pipex;
-
-char	**get_env_path_value();
+char	**get_env_path_value(void);
 
 char	*find_cmd(char *exe);
 
@@ -44,6 +44,8 @@ int		is_directory(char *file);
 void	free_strarray(char ***array);
 
 void	free_strarrayarray(char ****array);
+
+void	read_stdin(char *limiter, int output);
 
 void	pipe_file_input(char **cmds, char *input_file, int output_fd);
 

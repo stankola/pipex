@@ -1,80 +1,48 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipex_helpers.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/26 15:25:43 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 15:25:45 by tsankola         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <sys/wait.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
 #include "pipex.h"
-#include "libft.h"
+#ifndef PIPEX_READ_BUFFER_SIZE
+# define PIPEX_READ_BUFFER_SIZE 1
+#endif
 
-char	**get_env_path_value()
+void	read_stdin(char *limiter, int output)
 {
-	char	**value;
-	char	**iterator;
-	extern char **environ;
+	char	*limit_check;
+	char	*readbuf;
+	int		i;
 
-	iterator = environ; /// babababa
-	while (*iterator != NULL)
+	readbuf = malloc(sizeof(PIPEX_READ_BUFFER_SIZE));
+	while (1)
 	{
-		if (ft_strnstr(*iterator, "PATH", ft_strlen("PATH")))
+		limit_check = limiter;
+		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER_SIZE);
+		while (*limit_check != '\0' && *readbuf == *(limit_check))
 		{
-			value = ft_split(&((*iterator)[ft_strlen("PATH") + 1]), ':');
-			return (value);
+			*limit_check = *readbuf;
+			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER_SIZE);
+			limit_check++;
 		}
-		iterator++;
+		if (*limit_check == '\0')
+			break ;
+		i = 0;
+		while (limit_check != &(limiter[i]))
+			write(output, &(limiter[i++]), 1);
+		write(output, readbuf, 1);
 	}
-	return (NULL);
-}
-
-char	*find_cmd(char *exe)
-{
-	char	**env_path;
-	char	**path_iterator;
-	char	*full_location;
-
-	if (ft_strchr(exe, '/'))
-	{
-		if (access(exe, F_OK) == 0)
-			return (ft_strdup(exe));
-		return (NULL);
-	}
-	env_path = get_env_path_value();
-	path_iterator = env_path;
-	while (*path_iterator != NULL)
-	{
-		full_location = get_full_path(*(path_iterator++), exe);
-		if (access(full_location, F_OK) == 0)		// found
-			if (! is_directory(full_location))
-			{
-				free_strarray(&env_path);
-				return (full_location);
-			}
-		free(full_location);
-	}
-	free_strarray(&env_path);
-	return (NULL);
-}
-
-char	*get_full_path(char const *path, char const *file)
-{
-	char	*result;
-	int		resultlength;
-
-	if (path == NULL)
-		return (ft_strdup(file));
-	if (path[ft_strlen(path) - 1] == '/')
-		result = ft_strjoin(path, file);
-	else
-	{
-		resultlength = ft_strlen(path) + ft_strlen(file) + 1;
-		result = malloc(sizeof(char) * (resultlength + 1));
-		ft_strlcpy(result, path, resultlength + 1);
-		result[ft_strlen(path)] = '/';
-		result[ft_strlen(path) + 1] = '\0';
-		ft_strlcat(result, file, resultlength + 1);
-	}
-	return (result);
+	free(readbuf);
+	exit(0);
 }
 
 int	is_directory(char *file)

@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipes.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/26 15:25:34 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 15:25:36 by tsankola         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,14 +20,13 @@
 
 static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 {
-	int	pid;
-	int	status;
+	int			pid;
+	int			status;
+	extern char	**environ;
 
 	pid = fork();
 	if (pid > 0)
 	{
-//		if (waitpid(pid, &status, 0) < 0)
-//			perror(cmd);
 		waitpid(pid, &status, 0);
 		free(cmd);
 		exit (0);
@@ -25,9 +35,8 @@ static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 	{
 		dup2(input, STDIN_FILENO);
 		dup2(output, STDOUT_FILENO);
-		if (access(cmd, X_OK) == 0)
-			execve(cmd, cmds, NULL);	// Check the environ variable name
-//		perror(cmd);
+		execve(cmd, cmds, environ);
+		perror(cmd);
 		exit(-1);
 	}
 	else
@@ -38,10 +47,9 @@ static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 
 void	pipe_file_input(char **cmds, char *input_file, int output_fd)
 {
-	int		input_fd;
+	int	input_fd;
 
 	input_fd = open(input_file, O_RDONLY);
-//	ft_fprintf(STDERR_FILENO, "opened %s got fd %d\n", input_file, input_fd);
 	if (input_fd < 0)
 		perror(input_file);
 	else
@@ -51,10 +59,10 @@ void	pipe_file_input(char **cmds, char *input_file, int output_fd)
 
 void	pipe_file_output_append(char **cmds, int input_fd, char *output_file)
 {
-	int		output_fd;
+	int	output_fd;
 
 	output_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND,
-		S_IRUSR| S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
+			S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
 	if (output_fd < 0)
 		perror(output_file);
 	else
@@ -64,10 +72,10 @@ void	pipe_file_output_append(char **cmds, int input_fd, char *output_file)
 
 void	pipe_file_output_trunc(char **cmds, int input_fd, char *output_file)
 {
-	int		output_fd;
+	int	output_fd;
 
 	output_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC,
-		S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
+			S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
 	if (output_fd < 0)
 		perror(output_file);
 	else

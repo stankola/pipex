@@ -18,43 +18,12 @@
 #include <sys/stat.h>
 #include "libft.h"
 #include "pipex.h"
-#ifndef PIPEX_READ_BUFFER_SIZE
-# define PIPEX_READ_BUFFER_SIZE 1
-#endif
-
-void	read_stdin(char* limiter, int output)
-{
-	char	*limit_check;
-	char	*readbuf;
-	long int		i;
-
-	readbuf = malloc(sizeof(PIPEX_READ_BUFFER_SIZE));
-	while (1)
-	{
-		limit_check = limiter;
-		read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER_SIZE);
-		while (*limit_check != '\0' && *readbuf == *(limit_check))
-		{
-			*limit_check = *readbuf;
-			read(STDIN_FILENO, readbuf, PIPEX_READ_BUFFER_SIZE);
-			limit_check++;
-		}
-		if (*limit_check == '\0')
-			break ;
-		i = 0;
-		while (limit_check != &(limiter[i]))
-			write(output, &(limiter[i++]), 1);
-		write(output, readbuf, 1);
-	}
-	free(readbuf);
-	exit(0);
-}
 
 char	***get_cmds(char *argv[], int argc)
 {
 	int		i;
 	char	***cmds;
-	
+
 	i = 0;
 	cmds = ft_calloc(sizeof(char **), (argc + 1));
 	while (i < argc)
@@ -65,12 +34,11 @@ char	***get_cmds(char *argv[], int argc)
 	return (cmds);
 }
 
-int	forking_pipe(char **cmds, int fds[], char *files[],
-	int pipe_case, char *limit)
+int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 {
 	int	pid;
 	int	local_fds[3];
-	
+
 	local_fds[PIPE_READ] = fds[PIPE_READ];
 	local_fds[PIPE_WRITE] = fds[PIPE_WRITE];
 	local_fds[2] = fds[2];
@@ -81,7 +49,7 @@ int	forking_pipe(char **cmds, int fds[], char *files[],
 		if (pipe_case == ppx_file_input)
 			pipe_file_input(cmds, files[PIPEX_IN], local_fds[PIPE_WRITE]);
 		if (pipe_case == ppx_here_input)
-			read_stdin(limit, local_fds[PIPE_WRITE]);
+			read_stdin(files[PIPEX_IN], local_fds[PIPE_WRITE]);
 		else if (pipe_case == ppx_midpoint)
 			pipe_command(cmds, local_fds[2], local_fds[PIPE_WRITE]);
 		else if (pipe_case == ppx_out_append)
@@ -95,20 +63,13 @@ int	forking_pipe(char **cmds, int fds[], char *files[],
 	return (pid);
 }
 
-void	get_input_fd(char *filename, int *fd2, int *fd3, char *limit)
+static void	get_input_fd(char *filename, int *fd2, int *fd3, char *limit)
 {
 	if (limit)
-	{
-		*fd2 = 0;
-		*fd3 = *fd2;
-	}
+		*fd3 = 0;
 	else
-	{
 		*fd3 = open(filename, O_RDONLY);
-	//	if (*fd3 < 0)
-	//		perror(filename);
-		*fd2 = *fd3;
-	}
+	*fd2 = *fd3;
 }
 
 int	pipe_master(char ***cmds, char *files[], char *limit)
@@ -123,15 +84,15 @@ int	pipe_master(char ***cmds, char *files[], char *limit)
 		if (pipe(fds) < 0)
 			perror(NULL);
 		else if (limit && i[0] == 0)
-			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_here_input, limit);
+			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_here_input);
 		else if (i[0] == 0)
-			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_file_input, limit);
+			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_file_input);
 		else if (limit && cmds[i[0] + 1] == NULL)
-			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_append, limit);
+			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_append);
 		else if (cmds[i[0] + 1] == NULL)
-			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_trunc, NULL);
+			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_trunc);
 		else
-			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_midpoint, NULL);
+			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_midpoint);
 		fds[2] = fds[PIPE_READ];
 	}
 	if (fds[3] >= 0)
@@ -144,7 +105,6 @@ int	main(int argc, char *argv[])
 {
 	char	***cmds;
 	char	*io_files[2];
-//	int		result;
 
 	if (argc < 5)
 	{
