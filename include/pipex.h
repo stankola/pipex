@@ -24,6 +24,15 @@ enum	e_pipe_cases
 	ppx_out_trunc
 };
 
+typedef struct	s_pipex
+{
+	char	**cmds;
+	int		*fds;
+	char	**files;
+	char	*limit;
+	int		position;
+}				t_pipex;
+
 char	**get_env_path_value();
 
 char	*find_cmd(char *exe);
