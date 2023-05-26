@@ -5,33 +5,31 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "pipex.h"
-#include "libft.h"
 
 static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 {
 	int	pid;
 	int	status;
 
-	dup2(input, STDIN_FILENO);
-	dup2(output, STDOUT_FILENO);
 	pid = fork();
 	if (pid > 0)
 	{
 		if (waitpid(pid, &status, 0) < 0)
 			perror(cmd);
-		ft_fprintf(STDERR_FILENO, "%d %s Closing %d %d %d %d\n", pid, cmd, STDIN_FILENO, STDOUT_FILENO, input, output);
 		free(cmd);
 		exit (0);
 	}
 	else if (pid == 0)
 	{
+		dup2(input, STDIN_FILENO);
+		dup2(output, STDOUT_FILENO);
 		if (access(cmd, X_OK) == 0)
 			execve(cmd, cmds, __environ);	// Check the environ variable name
 //		perror(cmd);
 		exit(-1);
 	}
 	else
-		perror("2");
+		perror(NULL);
 	free(cmd);
 	exit(-1);
 }
@@ -41,7 +39,6 @@ void	pipe_file_input(char **cmds, char *input_file, int output_fd)
 	int		input_fd;
 
 	input_fd = open(input_file, O_RDONLY);
-	ft_printf("opened fd %d\n", input_fd);
 	if (input_fd < 0)
 		perror(input_file);
 	else
