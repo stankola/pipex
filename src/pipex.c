@@ -49,7 +49,7 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 		if (pipe_case == ppx_file_input)
 			pipe_file_input(cmds, files[PIPEX_IN], local_fds[PIPE_WRITE]);
 		if (pipe_case == ppx_here_input)
-			read_stdin(files[PIPEX_IN], local_fds[PIPE_WRITE]);
+			read_stdin(cmds[0], local_fds[PIPE_WRITE]);
 		else if (pipe_case == ppx_midpoint)
 			pipe_command(cmds, local_fds[2], local_fds[PIPE_WRITE]);
 		else if (pipe_case == ppx_out_append)
@@ -110,6 +110,7 @@ int	main(int argc, char *argv[])
 		free_strarrayarray(&cmds);
 		return (0);
 	}
+	io_files[PIPEX_IN] = -1;
 	cmds = get_cmds(&argv[2], argc - 3);
 	pipe_master(cmds, io_files, argv[2]);
 	free_strarrayarray(&cmds);
