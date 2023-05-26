@@ -65,18 +65,19 @@ char	***get_cmds(char *argv[], int argc)
 	return (cmds);
 }
 
-int	forking_pipe(char **cmds, int pipe_write, int pipe_read, int prev_pipe, char *files[],
+int	forking_pipe(char **cmds, int fds[], char *files[],
 	int pipe_case, char *limit)
 {
 	int	pid;
+	int	pipe_read;
+	int	pipe_write;
+	int	prev_pipe;
 	
+	pipe_read = fds[PIPE_READ];
+	pipe_write = fds[PIPE_WRITE];
+	prev_pipe = fds[2];
 	pid = fork();
-	if (pid > 0)
-	{
-		close(pipe_write);
-		return (pid);
-	}
-	else if (pid == 0)
+	if (pid == 0)
 	{
 		close(pipe_read);
 //		if (pipe_case == ppx_file_input)
@@ -90,52 +91,48 @@ int	forking_pipe(char **cmds, int pipe_write, int pipe_read, int prev_pipe, char
 		else if (pipe_case == ppx_out_trunc)
 			pipe_file_output_trunc(cmds, prev_pipe, files[PIPEX_OUT]);
 	}
-	else
+	else if (pid < 0)
 		perror(NULL);
-	return (-1);
+	return (pid);
 }
 
-int	get_input_fd(char *filename)
+void	get_input_fd(char *filename, int *fd)
 {
-	int		input_fd;
-
-	input_fd = open(filename, O_RDONLY);
-	if (input_fd < 0)
+	*fd = open(filename, O_RDONLY);
+	if (*fd < 0)
 		perror(filename);
-	return (input_fd);
 }
 
 int	pipe_master(char ***cmds, char *files[], char *limit)
 {
-	int	fds[2];
+	int	fds[4];		// INitialized to 0
 	int	i;
 	int	last_pid;
-	int	prev_output;
-	int	input_fd;
 
 	i = -1;
 	if (!limit)
-		input_fd = get_input_fd(files[PIPEX_IN]);
-	else
-		input_fd = STDIN_FILENO;
+		get_input_fd(files[PIPEX_IN], &fds[3]);
+	fds[2] = fds[3];
 	while (cmds[++i] != NULL)
 	{
 		if (pipe(fds) < 0)
 			perror(NULL);
 		if (limit && i == 0)
-			last_pid = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_here_input, limit);
-		else if (i == 0)
-			last_pid = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], input_fd, files, ppx_file_input, NULL);
+			last_pid = forking_pipe(cmds[i], fds, files, ppx_here_input, limit);
+//		else if (i == 0)
+//			last_pid = forking_pipe(cmds[i], fds, files, ppx_midpoint, NULL);
 		else if (limit && cmds[i + 1] == NULL)
-			last_pid = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_out_append, limit);
+			last_pid = forking_pipe(cmds[i], fds, files, ppx_out_append, limit);
 		else if (cmds[i + 1] == NULL)
-			last_pid = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_out_trunc, NULL);
+			last_pid = forking_pipe(cmds[i], fds, files, ppx_out_trunc, NULL);
 		else
-			last_pid = forking_pipe(cmds[i], fds[PIPE_WRITE], fds[PIPE_READ], prev_output, files, ppx_midpoint, NULL);
-		prev_output = fds[PIPE_READ];
+			last_pid = forking_pipe(cmds[i], fds, files, ppx_midpoint, NULL);
+		close(fds[PIPE_WRITE]);
+		fds[2] = fds[PIPE_READ];
 	}
-	waitpid(last_pid, &i, 0);
-	close(input_fd);
+	if (fds[3] >= 0)
+		waitpid(last_pid, &i, 0);
+	close(fds[3]);
 	return (i);
 }
 

@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "pipex.h"
+#include "libft.h"
 
 static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 {
