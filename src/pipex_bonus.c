@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/20 18:23:58 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/20 18:23:59 by tsankola         ###   ########.fr       */
+/*   Created: 2023/05/26 23:25:34 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 23:25:45 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include <unistd.h>
@@ -17,7 +17,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "libft.h"
-#include "pipex.h"
+#include "pipex_bonus.h"
 
 char	***get_cmds(char *argv[], int argc)
 {
@@ -98,7 +98,7 @@ int	main(int argc, char *argv[])
 
 	if (argc < 5)
 	{
-		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
+		ft_fprintf(STDERR_FILENO, "Wrong number of arguments\n");
 		return (-1);
 	}
 	io_files[PIPEX_OUT] = argv[argc - 1];

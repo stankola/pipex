@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex_searchers.c                                  :+:      :+:    :+:   */
+/*   pipex_searchers_bonus.c                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/26 15:58:37 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/26 15:58:37 by tsankola         ###   ########.fr       */
+/*   Created: 2023/05/26 23:26:10 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 23:26:19 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include <unistd.h>
 #include <stdlib.h>
 #include "libft.h"
-#include "pipex.h"
+#include "pipex_bonus.h"
 
 char	**get_env_path_value(void)
 {

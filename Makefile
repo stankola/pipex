@@ -12,6 +12,8 @@
 
 NAME = pipex
 
+NAME_BONUS = pipex
+
 CC = cc
 
 CFLAGS = -Wall -Wextra -Werror
@@ -35,18 +37,28 @@ TEST6 = test/6.brokelink.i cat "wc -l" 6.out
 
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
-_SRC = pipex.c pipex_helpers.c pipes.c pipex_searchers.c ring.c ring_functions.c
+_SRC = pipex.c pipex_helpers.c pipes.c pipex_searchers.c
 SRC = $(patsubst %, $(SRCDIR)/%, $(_SRC))
 
 _OBJ = $(patsubst %.c, %.o, $(_SRC))
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
-_LIB =	libft.a
+_SRC_BONUS = pipex_bonus.c pipex_helpers_bonus.c pipes_bonus.c \
+		pipex_searchers_bonus.c
+SRC_BONUS = $(patsubst %, $(SRCDIR)/%, $(_SRC_BONUS))
+
+_OBJ_BONUS = $(patsubst %.c, %.o, $(_SRC_BONUS))
+OBJ_BONUS = $(patsubst %, $(OBJDIR)/%, $(_OBJ_BONUS))
+
+_LIB = libft.a
 LIB = $(patsubst %, $(LIBDIR)/%, $(_LIB))
 LIB_NAME = $(patsubst lib%.a, %, $(_LIB))
 
-_INC =	pipex.h ring.h
+_INC = pipex.h
 INC = $(patsubst %, $(INCDIR)/%, $(_INC))
+
+_INC_BONUS = pipex_bonus.h
+INC_BONUS = $(patsubst %, $(INCDIR)/%, $(_INC))
 
 _LIB_INC = libft.h
 LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
@@ -55,7 +67,7 @@ LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
 
 all: $(NAME)
 
-bonus: ($NAME)
+bonus: $(NAME_BONUS)
 
 sanitizer: $(OBJ)
 	$(CC) $(CFLAGS) $(SFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
@@ -83,8 +95,12 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INC) $(LIB) $(OBJDIR)
 $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $@
 
+$(NAME_BONUS): $(OBJ_BONUS)
+	$(CC) $(CFLAGS) $(OBJ_BONUS) -L$(LIBDIR) -l$(LIB_NAME) -o $@
+
 clean:
 	rm -f $(OBJ)
+	rm -f $(OBJ_BONUS)
 	rmdir $(OBJDIR) > /dev/null || true
 	$(MAKE) -C $(LIBDIR) clean
 	rm -f $(LIB)

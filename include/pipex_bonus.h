@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   pipex_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/26 15:26:23 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/26 15:26:28 by tsankola         ###   ########.fr       */
+/*   Created: 2023/05/26 23:26:35 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 23:26:49 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef PIPEX_H
-# define PIPEX_H
+#ifndef PIPEX_BONUS_H
+# define PIPEX_BONUS_H
 # ifndef PIPE_READ
 #  define PIPE_READ 0
 # endif

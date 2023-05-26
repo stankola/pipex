@@ -92,3 +92,14 @@ input variations:
 		/filename
 		folder/filename
 		/usr/bin/filename
+
+
+These are apparently all here_doc tests:
+Test 1
+'here_doc ' '' > cat /dev/random | head -n 5
+"here_doc lim "cat /dev/random" "head -n 5" "outfile"
+
+Tests 4, 5 & 6
+cat | wc -cl | grep 0 | sort | cat
+cat | cat | cat | cat | wc
+cat | sort | ls | cat | wc
