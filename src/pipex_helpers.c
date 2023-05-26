@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "pipex.h"
+#include "libft.h"
 #ifndef PIPEX_READ_BUFFER_SIZE
 # define PIPEX_READ_BUFFER_SIZE 1
 #endif

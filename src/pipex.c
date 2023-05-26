@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "libft.h"
 #include "pipex.h"
+#include "ring.h"
 
 char	***get_cmds(char *argv[], int argc)
 {
@@ -63,22 +64,12 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 	return (pid);
 }
 
-static void	get_input_fd(char *filename, int *fd2, int *fd3, char *limit)
-{
-	if (limit)
-		*fd3 = 0;
-	else
-		*fd3 = open(filename, O_RDONLY);
-	*fd2 = *fd3;
-}
-
 int	pipe_master(char ***cmds, char *files[], char *limit)
 {
-	int	fds[4];
-	int	i[2];
+	int		fds[4];
+	int		i[2];
 
 	i[0] = -1;
-	get_input_fd(files[PIPEX_IN], &fds[2], &fds[3], limit);
 	while (cmds[++(i[0])] != NULL)
 	{
 		if (pipe(fds) < 0)
@@ -93,11 +84,13 @@ int	pipe_master(char ***cmds, char *files[], char *limit)
 			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_trunc);
 		else
 			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_midpoint);
+		if (i[0] != 0)
+			close(fds[2]);
 		fds[2] = fds[PIPE_READ];
 	}
-	if (fds[3] >= 0)
-		waitpid(i[1], &i[0], 0);
-	close(fds[3]);
+	waitpid(i[1], NULL, 0);
+	close(fds[2]);
+	while (wait(NULL) >= 0);
 	return (i[0]);
 }
 

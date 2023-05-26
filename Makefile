@@ -35,7 +35,7 @@ TEST6 = test/6.brokelink.i cat "wc -l" 6.out
 
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
-_SRC = pipex.c pipex_helpers.c pipes.c pipex_searchers.c
+_SRC = pipex.c pipex_helpers.c pipes.c pipex_searchers.c ring.c ring_functions.c
 SRC = $(patsubst %, $(SRCDIR)/%, $(_SRC))
 
 _OBJ = $(patsubst %.c, %.o, $(_SRC))
@@ -45,15 +45,17 @@ _LIB =	libft.a
 LIB = $(patsubst %, $(LIBDIR)/%, $(_LIB))
 LIB_NAME = $(patsubst lib%.a, %, $(_LIB))
 
-_INC =	pipex.h
+_INC =	pipex.h ring.h
 INC = $(patsubst %, $(INCDIR)/%, $(_INC))
 
 _LIB_INC = libft.h
 LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
 
-.PHONY: all test clean
+.PHONY: all bonus test clean
 
 all: $(NAME)
+
+bonus: ($NAME)
 
 sanitizer: $(OBJ)
 	$(CC) $(CFLAGS) $(SFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)

@@ -21,26 +21,27 @@
 static void	pipe_fork(char *cmd, char **cmds, int input, int output)
 {
 	int			pid;
-	int			status;
 	extern char	**environ;
 
+	dup2(input, STDIN_FILENO);
+	dup2(output, STDOUT_FILENO);
 	pid = fork();
 	if (pid > 0)
 	{
-		waitpid(pid, &status, 0);
+		waitpid(pid, NULL, 0);
 		free(cmd);
 		exit (0);
 	}
 	else if (pid == 0)
 	{
-		dup2(input, STDIN_FILENO);
-		dup2(output, STDOUT_FILENO);
-		execve(cmd, cmds, environ);
-		perror(cmd);
+		if (check_file_access(cmd))
+		{
+			execve(cmd, cmds, environ);
+			perror(cmd);
+		}
 		exit(-1);
 	}
-	else
-		perror(NULL);
+	perror(NULL);
 	free(cmd);
 	exit(-1);
 }
@@ -51,7 +52,7 @@ void	pipe_file_input(char **cmds, char *input_file, int output_fd)
 
 	input_fd = open(input_file, O_RDONLY);
 	if (input_fd < 0)
-		perror(input_file);
+		ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", input_file);
 	else
 		pipe_command(cmds, input_fd, output_fd);
 	exit(-1);

@@ -57,7 +57,7 @@ char	*find_cmd(char *exe)
 		free(full_location);
 	}
 	free_strarray(&env_path);
-	return (exe);
+	return ft_strdup(exe);
 }
 
 char	*get_full_path(char const *path, char const *file)
@@ -79,4 +79,17 @@ char	*get_full_path(char const *path, char const *file)
 		ft_strlcat(result, file, resultlength + 1);
 	}
 	return (result);
+}
+
+int	check_file_access(char *cmd)
+{
+	if (access(cmd, F_OK) != 0)
+	{
+		if (ft_strchr(cmd, '/'))
+			ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", cmd);
+		else
+			ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
+		return (0);
+	}
+	return (1);
 }
