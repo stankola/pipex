@@ -19,6 +19,7 @@
 #include <errno.h>
 #include "libft.h"
 #include "pipex.h"
+#include "pipex_proc_hdr.h"
 
 char	***get_cmds(char *argv[], int argc)
 {
@@ -77,25 +78,6 @@ void	wait_and_print_errors(t_list *list)
 			ft_fprintf(STDERR_FILENO, "pid %d %s\n", pid, strerror(WEXITSTATUS(stat_loc)));
 		}
 	}
-}
-
-typedef struct	s_process_header
-{
-	pid_t	pid;
-	char	*cmd;
-	char	**files;
-}				t_process_header;
-
-t_process_header	*new_process_header(pid_t pid, char *cmd, char **files)
-{
-	t_process_header	*ph;
-	ph = malloc(sizeof(t_process_header));
-	if (ph == NULL)
-		return (NULL);
-	ph->pid = pid;
-	ph->cmd = cmd;
-	ph->files = files;
-	return (ph);
 }
 
 void	pipe_master(char ***cmds, char *files[])
