@@ -44,7 +44,7 @@ _OBJ = $(patsubst %.c, %.o, $(_SRC))
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
 _SRC_BONUS = pipex_bonus.c pipex_helpers_bonus.c pipes_bonus.c \
-		pipex_searchers_bonus.c
+		pipex_searchers_bonus.c pipex_heredoc_bonus.c
 SRC_BONUS = $(patsubst %, $(SRCDIR)/%, $(_SRC_BONUS))
 
 _OBJ_BONUS = $(patsubst %.c, %.o, $(_SRC_BONUS))
@@ -57,8 +57,8 @@ LIB_NAME = $(patsubst lib%.a, %, $(_LIB))
 _INC = pipex.h
 INC = $(patsubst %, $(INCDIR)/%, $(_INC))
 
-_INC_BONUS = pipex_bonus.h
-INC_BONUS = $(patsubst %, $(INCDIR)/%, $(_INC))
+_INC_BONUS = pipex_bonus.h pipex_heredoc_bonus.h
+INC_BONUS = $(patsubst %, $(INCDIR)/%, $(_INC_BONUS))
 
 _LIB_INC = libft.h
 LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
@@ -67,7 +67,7 @@ LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
 
 all: $(NAME)
 
-bonus: $(OBJ_BONUS) $(INC_BONUS)
+bonus: $(OBJ_BONUS) $(INC_BONUS) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_BONUS) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME_BONUS)
 
 sanitizer: $(OBJ)

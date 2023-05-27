@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "libft.h"
 #include "pipex_bonus.h"
+#include "pipex_heredoc_bonus.h"
 
 char	***get_cmds(char *argv[], int argc)
 {
@@ -48,8 +49,6 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 		close(local_fds[PIPE_READ]);
 		if (pipe_case == ppx_file_input)
 			pipe_file_input(cmds, files[PIPEX_IN], local_fds[PIPE_WRITE]);
-		if (pipe_case == ppx_here_input)
-			read_stdin(files[PIPEX_IN], local_fds[PIPE_WRITE]);
 		else if (pipe_case == ppx_midpoint)
 			pipe_command(cmds, local_fds[2], local_fds[PIPE_WRITE]);
 		else if (pipe_case == ppx_out_append)
@@ -63,7 +62,7 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 	return (pid);
 }
 
-void	pipe_master(char ***cmds, char *files[], char *limit)
+void	pipe_master(char ***cmds, char *files[])
 {
 	int		fds[4];
 	int		i[2];
@@ -73,11 +72,12 @@ void	pipe_master(char ***cmds, char *files[], char *limit)
 	{
 		if (pipe(fds) < 0)
 			perror(NULL);
-		else if (limit && i[0] == 0)
-			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_here_input);
+		if (i[0] == 0 && files[PIPEX_IN] == NULL)
+			heredoc_reader(cmds[0], fds[PIPE_WRITE]);
+//			fds[PIPE_READ] = forking_pipe(cmds[i[0]], fds, files, ppx_here_input);
 		else if (i[0] == 0)
 			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_file_input);
-		else if (limit && cmds[i[0] + 1] == NULL)
+		else if (cmds[i[0] + 1] == NULL && files[PIPEX_IN] == NULL)
 			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_append);
 		else if (cmds[i[0] + 1] == NULL)
 			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_out_trunc);
@@ -87,6 +87,7 @@ void	pipe_master(char ***cmds, char *files[], char *limit)
 			close(fds[2]);
 		fds[2] = fds[PIPE_READ];
 	}
+	close(fds[2]);
 	while (wait(NULL) >= 0)
 		;
 }
@@ -98,20 +99,21 @@ int	main(int argc, char *argv[])
 
 	if (argc < 5)
 	{
-		ft_fprintf(STDERR_FILENO, "Wrong number of arguments\n");
+		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
 		return (-1);
 	}
 	io_files[PIPEX_OUT] = argv[argc - 1];
-	if (ft_strncmp("here_doc", argv[1], 8) != 0)
+	if (ft_strncmp("here_doc", argv[1], ft_strlen(argv[1])) != 0)
 	{
 		io_files[PIPEX_IN] = argv[1];
 		cmds = get_cmds(&argv[2], argc - 3);
-		pipe_master(cmds, io_files, NULL);
+		pipe_master(cmds, io_files);
 		free_strarrayarray(&cmds);
 		return (0);
 	}
+	io_files[PIPEX_IN] = NULL;
 	cmds = get_cmds(&argv[2], argc - 3);
-	pipe_master(cmds, io_files, argv[2]);
+	pipe_master(cmds, io_files);
 	free_strarrayarray(&cmds);
 	return (0);
 }

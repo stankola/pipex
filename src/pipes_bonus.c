@@ -18,7 +18,7 @@
 #include "pipex_bonus.h"
 #include "libft.h"
 
-static void	pipe_fork(char *cmd, char **cmds, int input, int output)
+static void	cmd_fork(char *cmd, char **cmds, int input, int output)
 {
 	int			pid;
 	extern char	**environ;
@@ -90,7 +90,7 @@ void	pipe_command(char **cmds, int input_fd, int output_fd)
 
 	cmd = find_cmd(cmds[0]);
 	if (cmd != NULL)
-		pipe_fork(cmd, cmds, input_fd, output_fd);
+		cmd_fork(cmd, cmds, input_fd, output_fd);
 	perror(cmds[0]);
 	exit(-1);
 }

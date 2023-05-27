@@ -27,9 +27,7 @@
 enum	e_pipex_cases
 {
 	ppx_file_input,
-	ppx_here_input,
 	ppx_midpoint,
-	ppx_out_append,
 	ppx_out_trunc
 };
 
@@ -40,8 +38,6 @@ char		*find_cmd(char *exe);
 char		*get_full_path(char const *path, char const *file);
 
 int			check_file_access(char *cmd);
-
-void		read_stdin(char *limiter, int output);
 
 int			is_directory(char *file);
 

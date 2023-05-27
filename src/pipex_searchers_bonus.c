@@ -73,6 +73,8 @@ char	*get_full_path(char const *path, char const *file)
 	{
 		resultlength = ft_strlen(path) + ft_strlen(file) + 1;
 		result = malloc(sizeof(char) * (resultlength + 1));
+		if (result == NULL)
+			return (NULL);
 		ft_strlcpy(result, path, resultlength + 1);
 		result[ft_strlen(path)] = '/';
 		result[ft_strlen(path) + 1] = '\0';
