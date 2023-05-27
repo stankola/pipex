@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <errno.h>
 #include "pipex.h"
 #include "libft.h"
 
@@ -22,28 +23,29 @@ static void	cmd_fork(char *cmd, char **cmds, int input, int output)
 {
 	int			pid;
 	extern char	**environ;
+	int			status;
 
 	dup2(input, STDIN_FILENO);
 	dup2(output, STDOUT_FILENO);
 	pid = fork();
 	if (pid > 0)
 	{
-		waitpid(pid, NULL, 0);
+		waitpid(pid, &status, 0);
 		free(cmd);
-		exit (0);
+		exit (errno);
 	}
 	else if (pid == 0)
 	{
-		if (check_file_access(cmd))
-		{
+//		if (check_file_access(cmd))
+//		{
 			execve(cmd, cmds, environ);
-			perror(cmd);
-		}
-		exit(-1);
+//			perror(cmd);
+//		}
+		exit(errno);
 	}
 	perror(NULL);
 	free(cmd);
-	exit(-1);
+	exit(errno);
 }
 
 void	pipe_file_input(char **cmds, char *input_file, int output_fd)

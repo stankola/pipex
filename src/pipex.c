@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include "libft.h"
 #include "pipex.h"
 
@@ -59,6 +60,20 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 	return (pid);
 }
 
+void	wait_and_print_errors(void)
+{
+	int	stat_loc;
+	int	waitresult;
+
+	while (1)
+	{
+		waitresult = wait(&stat_loc);
+		if (waitresult < 0)
+			break ;
+		perror((NULL));
+	}
+}
+
 void	pipe_master(char ***cmds, char *files[])
 {
 	int		fds[4];
@@ -80,8 +95,7 @@ void	pipe_master(char ***cmds, char *files[])
 		fds[2] = fds[PIPE_READ];
 	}
 	close(fds[2]);
-	while (wait(NULL) >= 0)
-		;
+	wait_and_print_errors();
 }
 
 int	main(int argc, char *argv[])

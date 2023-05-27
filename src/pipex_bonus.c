@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include "libft.h"
 #include "pipex_bonus.h"
 #include "pipex_heredoc_bonus.h"
@@ -73,7 +74,7 @@ void	pipe_master(char ***cmds, char *files[])
 		if (pipe(fds) < 0)
 			perror(NULL);
 		if (i[0] == 0 && files[PIPEX_IN] == NULL)
-			heredoc_reader(cmds[0], fds[PIPE_WRITE]);
+			heredoc_reader(cmds[0][0], fds[PIPE_WRITE]);
 //			fds[PIPE_READ] = forking_pipe(cmds[i[0]], fds, files, ppx_here_input);
 		else if (i[0] == 0)
 			i[1] = forking_pipe(cmds[i[0]], fds, files, ppx_file_input);
@@ -97,6 +98,8 @@ int	main(int argc, char *argv[])
 	char	***cmds;
 	char	*io_files[2];
 
+	ft_fprintf(STDERR_FILENO, "%s\n", strerror(ENOENT));
+	exit (1);
 	if (argc < 5)
 	{
 		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);

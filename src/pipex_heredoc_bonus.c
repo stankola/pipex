@@ -68,7 +68,7 @@ static int	read_char_to_buffer(t_char_buffer *buf, int fd)
 
 static char	get_last_char(t_char_buffer *buf)
 {
-	if (buf->tail_index != 0)
+	if (buf->tail_index > 0)
 		return (buf->buffer[buf->tail_index - 1]);
 	return ('\0');
 }
@@ -86,17 +86,36 @@ void	heredoc_reader(char *limiter, int output)
 {
 	char			*limit_check;
 	t_char_buffer	*buf;
+	int				start_checking;
 
 	buf = new_char_buffer();
 	limit_check = limiter;
-	while (*limit_check != '\0' && read_char_to_buffer(buf, STDIN_FILENO) > 0)		// >= ??
+	start_checking = 1;
+//	ft_fprintf(STDERR_FILENO, "Here %p\n", limit_check);
+	while ((limit_check == NULL || *limit_check != '\0') && read_char_to_buffer(buf, STDIN_FILENO) > 0)
 	{
-		if (get_last_char(buf) == *(limit_check))
-			limit_check++;
-		else
-			limit_check = limiter;
+//		ft_fprintf(STDERR_FILENO, "Where? %d\n", get_last_char(buf));
+//		ft_fprintf(STDERR_FILENO, "What?\n", limiter);
+		if (start_checking)
+		{
+//			ft_fprintf(STDERR_FILENO, "Why?\n", limiter);
+			if (limit_check == NULL &&  get_last_char(buf) == '\n')
+			{
+				erase_chars(buf, 1);
+				break ;
+			}
+			else if (limit_check != NULL && get_last_char(buf) == *(limit_check))
+				limit_check++;
+			else
+			{
+				limit_check = limiter;
+				start_checking = 0;
+			}
+		}
+		start_checking = start_checking || get_last_char(buf) == '\n';
 	}
-	if (*limit_check == '\0')
+//	ft_fprintf(STDERR_FILENO, "There\n");
+	if (limit_check != NULL && *limit_check == '\0')
 		erase_chars(buf, ft_strlen(limiter));
 	write(output, buf->buffer, buf->tail_index);
 	free(buf->buffer);
