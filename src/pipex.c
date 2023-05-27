@@ -74,7 +74,9 @@ void	wait_and_print_errors(t_list *list)
 			break ;
 		if (WEXITSTATUS(stat_loc) > 0)
 		{
-			// FIND header with pid == pid and add cmd string to error message.
+			// FIND header with pid == pid and add cmd string to error message.	
+			// There's the problem that missing io file and cmd both return the same error number.
+			// Perhaps I should implement my own for the missing io files.
 			ft_fprintf(STDERR_FILENO, "pid %d %s\n", pid, strerror(WEXITSTATUS(stat_loc)));
 		}
 	}
