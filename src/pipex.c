@@ -60,26 +60,52 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 	return (pid);
 }
 
-void	wait_and_print_errors(void)
+void	wait_and_print_errors(t_list *list)
 {
-	int	stat_loc;
-	int	waitresult;
+	int		stat_loc;
+	pid_t	pid;
 
+	list +=0;
 	while (1)
 	{
-		waitresult = wait(&stat_loc);
-		if (waitresult < 0)
+		pid = wait(&stat_loc);
+		if (pid < 0)
 			break ;
-		perror((NULL));
+		if (WEXITSTATUS(stat_loc) > 0)
+		{
+			// FIND header with pid == pid and add cmd string to error message.
+			ft_fprintf(STDERR_FILENO, "pid %d %s\n", pid, strerror(WEXITSTATUS(stat_loc)));
+		}
 	}
+}
+
+typedef struct	s_process_header
+{
+	pid_t	pid;
+	char	*cmd;
+	char	**files;
+}				t_process_header;
+
+t_process_header	*new_process_header(pid_t pid, char *cmd, char **files)
+{
+	t_process_header	*ph;
+	ph = malloc(sizeof(t_process_header));
+	if (ph == NULL)
+		return (NULL);
+	ph->pid = pid;
+	ph->cmd = cmd;
+	ph->files = files;
+	return (ph);
 }
 
 void	pipe_master(char ***cmds, char *files[])
 {
 	int		fds[4];
 	int		i[2];
+	t_list	*list;		// change to ring?
 
 	i[0] = -1;
+	list = NULL;
 	while (cmds[++(i[0])] != NULL)
 	{
 		if (pipe(fds) < 0)
@@ -93,9 +119,12 @@ void	pipe_master(char ***cmds, char *files[])
 		if (i[0] != 0)
 			close(fds[2]);
 		fds[2] = fds[PIPE_READ];
+		ft_lstadd_front(&list, ft_lstnew(new_process_header(i[1], cmds[i[0]][0], files)));
 	}
 	close(fds[2]);
-	wait_and_print_errors();
+	wait_and_print_errors(list);
+//	while (wait(NULL) >= 0)
+//		;
 }
 
 int	main(int argc, char *argv[])
