@@ -23,6 +23,18 @@
 # ifndef PIPEX_OUT
 #  define PIPEX_OUT 1
 # endif
+# ifndef STDERR_READ
+#  define STDERR_READ 2 + PIPE_READ
+# endif
+# ifndef STDERR_WRITE
+#  define STDERR_WRITE 2 + PIPE_WRITE
+# endif
+# ifndef OUTPUT_FD
+#  define INPUT_FD 4
+# endif
+# ifndef OUTPUT_FD
+#  define OUTPUT_FD 5
+# endif
 
 enum	e_pipex_cases
 {
@@ -52,5 +64,13 @@ void		pipe_file_output_append(char **cmds, int input_fd, char *output_file);
 void		pipe_file_output_trunc(char **cmds, int input_fd, char *output_file);
 
 void		pipe_command(char **cmds, int input_fd, int output_fd);
+
+void		copy_int_array(int *to, int *from, int size);
+
+void		replace_fd(char *file, int *fd_ptr, int task);
+
+void		layer_of_pipes(int fds[]);
+
+void		closing_time(int fd[]);
 
 #endif

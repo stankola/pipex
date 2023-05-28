@@ -23,8 +23,6 @@ static void	cmd_fork(char *cmd, char **cmds, int input, int output)
 	int			pid;
 	extern char	**environ;
 
-	dup2(input, STDIN_FILENO);
-	dup2(output, STDOUT_FILENO);
 	pid = fork();
 	if (pid > 0)
 	{
@@ -34,6 +32,8 @@ static void	cmd_fork(char *cmd, char **cmds, int input, int output)
 	}
 	else if (pid == 0)
 	{
+		dup2(input, STDIN_FILENO);
+		dup2(output, STDOUT_FILENO);
 		if (check_file_access(cmd))
 		{
 			execve(cmd, cmds, environ);

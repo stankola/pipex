@@ -98,8 +98,6 @@ int	main(int argc, char *argv[])
 	char	***cmds;
 	char	*io_files[2];
 
-	ft_fprintf(STDERR_FILENO, "%s\n", strerror(ENOENT));
-	exit (1);
 	if (argc < 5)
 	{
 		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);

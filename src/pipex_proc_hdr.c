@@ -11,8 +11,10 @@
 /* ************************************************************************** */
 #include <stdlib.h>
 #include "pipex_proc_hdr.h"
+#include <unistd.h>
+#include "libft.h"
 
-t_process_header	*new_process_header(pid_t pid, char *cmd, char **files)
+t_process_header	*new_process_header(pid_t pid, char *cmd, int err_fd)
 {
 	t_process_header	*ph;
 	ph = malloc(sizeof(t_process_header));
@@ -20,12 +22,13 @@ t_process_header	*new_process_header(pid_t pid, char *cmd, char **files)
 		return (NULL);
 	ph->pid = pid;
 	ph->cmd = cmd;
-	ph->files = files;
+	ph->err_fd = err_fd;
 	return (ph);
 }
 
 int	match_process_header_to_pid(t_process_header *ph, pid_t *pid)
 {
+	ft_fprintf(STDERR_FILENO, "Matching %d and %d\n", ph->pid, *pid);
 	if (ph->pid == *pid)
 		return (1);
 	return (0);
@@ -35,7 +38,7 @@ void	del_process_header(t_process_header **ph)
 {
 	(*ph)->pid = 0;
 	(*ph)->cmd = NULL;
-	(*ph)->files = NULL;
+	(*ph)->err_fd = 0;
 	free(*ph);
 	*ph = NULL;
 }
