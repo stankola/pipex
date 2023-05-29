@@ -123,7 +123,7 @@ int	main(int argc, char *argv[])
 	char	***cmds;
 	char	*io_files[2];
 
-	if (argc < 5)
+	if (argc != 5)
 	{
 		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
 		return (-1);

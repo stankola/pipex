@@ -26,7 +26,6 @@ void	replace_fd(char *file, int *fd_ptr, int task)
 {
 	int	new_fd;
 
-	ft_printf("there%d", task);
 	new_fd = -1;
 	if (task == ppx_file_input)
 		new_fd = open(file, O_RDONLY);
@@ -38,7 +37,7 @@ void	replace_fd(char *file, int *fd_ptr, int task)
 				S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
 	if (new_fd < 0)
 	{
-		if (errno == 2)		// might have no access??
+		if (errno == 2)		// might not have access??
 			ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", file);
 		else
 			perror(file);

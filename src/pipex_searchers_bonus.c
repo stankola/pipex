@@ -14,6 +14,21 @@
 #include "libft.h"
 #include "pipex_bonus.h"
 
+char	***get_cmds(char *argv[], int argc)
+{
+	int		i;
+	char	***cmds;
+
+	i = 0;
+	cmds = ft_calloc(sizeof(char **), (argc + 1));
+	while (i < argc)
+	{
+		cmds[i] = ft_split(argv[i], ' ');
+		i++;
+	}
+	return (cmds);
+}
+
 char	**get_env_path_value(void)
 {
 	char		**value;

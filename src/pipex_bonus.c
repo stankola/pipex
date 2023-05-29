@@ -22,21 +22,6 @@
 #include "pipex_heredoc_bonus.h"
 #include "pipex_proc_hdr_bonus.h"
 
-char	***get_cmds(char *argv[], int argc)
-{
-	int		i;
-	char	***cmds;
-
-	i = 0;
-	cmds = ft_calloc(sizeof(char **), (argc + 1));
-	while (i < argc)
-	{
-		cmds[i] = ft_split(argv[i], ' ');
-		i++;
-	}
-	return (cmds);
-}
-
 // Bottom worker executes commands
 int	bottom_worker(char **cmd, int input_fd, int output_fd)
 {
@@ -76,7 +61,6 @@ pid_t	middle_management(char **cmd, int fds[], char *files[], int task)
 
 	copy_int_array(local_fds, fds, 6);
 	pid = fork();
-	ft_printf("here");
 	if (pid == 0)
 	{
 		dup2(local_fds[PIPE_WRITE_STDERR], STDERR_FILENO);
@@ -94,6 +78,21 @@ pid_t	middle_management(char **cmd, int fds[], char *files[], int task)
 	return (pid);
 }
 
+pid_t	executive_decision(int i, char ***cmds, int fds[], char *files[])
+{
+	pid_t	pid;
+
+	if (i == 0)
+		pid = middle_management(cmds[i], fds, files, ppx_file_input);
+	else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(cmds[0][0])) == 0)
+		pid = middle_management(cmds[i], fds, files, ppx_out_append);
+	else if (cmds[i + 1] == NULL)
+		pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
+	else
+		pid = middle_management(cmds[i], fds, files, ppx_midpoint);
+	return (pid);
+}
+
 // Top executive handles pipelines
 void	top_executive(char ***cmds, char *files[], int pipecount)
 {
@@ -106,18 +105,12 @@ void	top_executive(char ***cmds, char *files[], int pipecount)
 	pid = -1;
 	process_list = NULL;
 	fds[INPUT_FD] = -1;
-	while (cmds[++i] != NULL)
+	while (cmds[++i] != NULL && layer_of_pipes(fds) >= 0)
 	{
-		if (layer_of_pipes(fds) < 0)
-			break ;
 		if (i == 0 && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(cmds[0][0])) == 0)
 			heredoc_reader(cmds[0][0], fds[PIPE_WRITE], pipecount);
-		else if (i == 0)
-			pid = middle_management(cmds[i], fds, files, ppx_file_input);
-		else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(cmds[0][0])) == 0)
-			pid = middle_management(cmds[i], fds, files, ppx_out_append);
-		else if (cmds[i + 1] == NULL)
-			pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
+		else 
+			pid = executive_decision(i, cmds, fds, files);
 		close_extra_pipes(fds);
 		save_process(&process_list, pid, cmds[i][0], fds[PIPE_READ_STDERR]);
 	}

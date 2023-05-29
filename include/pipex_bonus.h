@@ -30,6 +30,8 @@ enum	e_pipex_cases
 	ppx_out_trunc
 };
 
+char		***get_cmds(char *argv[], int argc);
+
 char		**get_env_path_value(void);
 
 char		*find_cmd(char *exe);

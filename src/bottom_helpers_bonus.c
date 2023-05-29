@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "pipex_bonus.h"
 #include <unistd.h>
+#include <sys/wait.h>
 
 void	bottom_duplicator(int input, int output, int errput)
 {

@@ -113,8 +113,7 @@ void	heredoc_reader(char *limiter, int output, int pipecount)
 	}
 	if (limit_check != NULL && *limit_check == '\0')
 		erase_chars(buf, ft_strlen(limiter));
-	int j = write(output, buf->buffer, buf->tail_index);
-	ft_printf("Wrote %d characters to %d\n", j, output);
+	write(output, buf->buffer, buf->tail_index);
 	free(buf->buffer);
 	free(buf);
 	return ;

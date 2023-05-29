@@ -24,7 +24,6 @@
 enum	e_pipex_cases
 {
 	ppx_file_input,
-	ppx_midpoint,
 	ppx_out_trunc
 };
 
