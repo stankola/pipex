@@ -84,7 +84,7 @@ pid_t	executive_decision(int i, char ***cmds, int fds[], char *files[])
 
 	if (i == 0)
 		pid = middle_management(cmds[i], fds, files, ppx_file_input);
-	else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(cmds[0][0])) == 0)
+	else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(files[PIPEX_IN]) == 0))
 		pid = middle_management(cmds[i], fds, files, ppx_out_append);
 	else if (cmds[i + 1] == NULL)
 		pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
@@ -107,7 +107,7 @@ void	top_executive(char ***cmds, char *files[], int pipecount)
 	fds[INPUT_FD] = -1;
 	while (cmds[++i] != NULL && layer_of_pipes(fds) >= 0)
 	{
-		if (i == 0 && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(cmds[0][0])) == 0)
+		if (i == 0 && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(files[PIPEX_IN]) == 0))
 			heredoc_reader(cmds[0][0], fds[PIPE_WRITE], pipecount);
 		else 
 			pid = executive_decision(i, cmds, fds, files);
