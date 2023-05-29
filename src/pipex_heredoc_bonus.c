@@ -82,23 +82,20 @@ static void	erase_chars(t_char_buffer *buf, size_t count)
 	buf->buffer[buf->tail_index] = '\0';
 }
 
-void	heredoc_reader(char *limiter, int output)
+void	heredoc_reader(char *limiter, int output, int pipecount)
 {
 	char			*limit_check;
 	t_char_buffer	*buf;
 	int				start_checking;
 
+	pipecount += 0;
 	buf = new_char_buffer();
 	limit_check = limiter;
 	start_checking = 1;
-//	ft_fprintf(STDERR_FILENO, "Here %p\n", limit_check);
 	while ((limit_check == NULL || *limit_check != '\0') && read_char_to_buffer(buf, STDIN_FILENO) > 0)
 	{
-//		ft_fprintf(STDERR_FILENO, "Where? %d\n", get_last_char(buf));
-//		ft_fprintf(STDERR_FILENO, "What?\n", limiter);
 		if (start_checking)
 		{
-//			ft_fprintf(STDERR_FILENO, "Why?\n", limiter);
 			if (limit_check == NULL &&  get_last_char(buf) == '\n')
 			{
 				erase_chars(buf, 1);
@@ -114,12 +111,11 @@ void	heredoc_reader(char *limiter, int output)
 		}
 		start_checking = start_checking || get_last_char(buf) == '\n';
 	}
-//	ft_fprintf(STDERR_FILENO, "There\n");
 	if (limit_check != NULL && *limit_check == '\0')
 		erase_chars(buf, ft_strlen(limiter));
-	write(output, buf->buffer, buf->tail_index);
+	int j = write(output, buf->buffer, buf->tail_index);
+	ft_printf("Wrote %d characters to %d\n", j, output);
 	free(buf->buffer);
 	free(buf);
-	close(output);
 	return ;
 }

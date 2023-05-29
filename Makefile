@@ -37,15 +37,16 @@ TEST6 = test/6.brokelink.i cat "wc -l" 6.out
 
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
-_SRC = pipex.c pipex_helpers.c pipes.c pipex_searchers.c pipex_proc_hdr.c \
+_SRC = pipex.c pipex_helpers.c pipex_searchers.c pipex_proc_hdr.c \
 		top_helpers.c middle_helpers.c bottom_helpers.c
 SRC = $(patsubst %, $(SRCDIR)/%, $(_SRC))
 
 _OBJ = $(patsubst %.c, %.o, $(_SRC))
 OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
-_SRC_BONUS = pipex_bonus.c pipex_helpers_bonus.c pipes_bonus.c \
-		pipex_searchers_bonus.c pipex_heredoc_bonus.c
+_SRC_BONUS = pipex_bonus.c pipex_helpers_bonus.c pipex_proc_hdr_bonus.c \
+		pipex_searchers_bonus.c pipex_heredoc_bonus.c top_helpers_bonus.c \
+		middle_helpers_bonus.c bottom_helpers_bonus.c
 SRC_BONUS = $(patsubst %, $(SRCDIR)/%, $(_SRC_BONUS))
 
 _OBJ_BONUS = $(patsubst %.c, %.o, $(_SRC_BONUS))
@@ -58,7 +59,7 @@ LIB_NAME = $(patsubst lib%.a, %, $(_LIB))
 _INC = pipex.h pipex_proc_hdr.h
 INC = $(patsubst %, $(INCDIR)/%, $(_INC))
 
-_INC_BONUS = pipex_bonus.h pipex_heredoc_bonus.h
+_INC_BONUS = pipex_bonus.h pipex_proc_hdr_bonus.h pipex_heredoc_bonus.h
 INC_BONUS = $(patsubst %, $(INCDIR)/%, $(_INC_BONUS))
 
 _LIB_INC = libft.h

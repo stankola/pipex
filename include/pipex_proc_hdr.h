@@ -13,7 +13,7 @@
 # define PIPEX_PROC_HDR_H
 # include <sys/wait.h>
 
-typedef struct	s_process_header
+typedef struct s_process_header
 {
 	pid_t	pid;
 	char	*cmd;
@@ -22,8 +22,9 @@ typedef struct	s_process_header
 
 t_process_header	*new_process_header(pid_t pid, char *cmd, int err_fd);
 
-int	match_process_header_to_pid(t_process_header *ph, pid_t *pid);
+int					match_process_header_to_pid(t_process_header *ph,
+						pid_t *pid);
 
-void	del_process_header(t_process_header **ph);
+void				del_process_header(t_process_header **ph);
 
 #endif

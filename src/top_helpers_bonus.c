@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   top_helpers.c                                      :+:      :+:    :+:   */
+/*   top_helpers_bonus.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -11,9 +11,9 @@
 /* ************************************************************************** */
 #include <unistd.h>
 #include <stdio.h>
-#include "pipex.h"
 #include "libft.h"
-#include "pipex_proc_hdr.h"
+#include "pipex_bonus.h"
+#include "pipex_proc_hdr_bonus.h"
 
 int	layer_of_pipes(int fds[])
 {

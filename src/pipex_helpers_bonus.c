@@ -13,6 +13,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "pipex_bonus.h"
+#ifndef CBUF_LENGTH
+# define CBUF_LENGTH 256
+#endif
 
 int	is_directory(char *file)
 {
@@ -50,4 +53,17 @@ void	free_strarrayarray(char ****array)
 	}
 	free(*array);
 	*array = NULL;
+}
+
+void	print_to_stderr(int source_fd)
+{
+	char	cbuf[CBUF_LENGTH];
+	int		c_count;
+
+	c_count = read(source_fd, cbuf, CBUF_LENGTH);
+	if (c_count > 0)
+	{
+		cbuf[c_count - 1] = '\0';
+		ft_fprintf(STDERR_FILENO, "%s\n", cbuf);
+	}
 }
