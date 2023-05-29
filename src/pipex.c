@@ -21,6 +21,7 @@
 #include "pipex.h"
 #include "pipex_proc_hdr.h"
 
+
 char	***get_cmds(char *argv[], int argc)
 {
 	int		i;
@@ -35,7 +36,7 @@ char	***get_cmds(char *argv[], int argc)
 	}
 	return (cmds);
 }
-
+/*
 int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 {
 	int	pid;
@@ -59,7 +60,7 @@ int	forking_pipe(char **cmds, int fds[], char *files[], int pipe_case)
 		perror(NULL);
 	close(fds[PIPE_WRITE]);
 	return (pid);
-}
+}*/
 /*
 // Not finished
 t_process_header	*get_process_header_by_pid(t_list **list, pid_t pid)
@@ -90,7 +91,7 @@ t_process_header	*get_process_header_by_pid(t_list **list, pid_t pid)
 	free(temp_list);
 	return (ph);
 }*/
-
+/*
 // Removes the first matching item from the list and returns it.
 t_list	*ft_lstgetmatch(t_list **list, int (*f)(void *, void *), void *term)
 {
@@ -120,8 +121,8 @@ t_list	*ft_lstgetmatch(t_list **list, int (*f)(void *, void *), void *term)
 			iterator = iterator->next;
 	}
 	return (NULL);
-}
-
+}*/
+/*
 void	wait_and_print_errors(t_list **list)
 {
 	int		stat_loc;
@@ -146,8 +147,8 @@ void	wait_and_print_errors(t_list **list)
 		}
 		free(ph);
 	}
-}
-
+}*/
+/*
 void	pipe_master(char ***cmds, char *files[])
 {
 	int		fds[4];
@@ -169,41 +170,54 @@ void	pipe_master(char ***cmds, char *files[])
 		if (i[0] != 0)
 			close(fds[2]);
 		fds[2] = fds[PIPE_READ];
-		ft_lstadd_front(&list, ft_lstnew(new_process_header(i[1], cmds[i[0]][0], files)));
+//		ft_lstadd_front(&list, ft_lstnew(new_process_header(i[1], cmds[i[0]][0], files)));
 	}
 	close(fds[2]);
-	wait_and_print_errors(&list);
+//	wait_and_print_errors(&list);
 //	while (wait(NULL) >= 0)
 //		;
-}
+}*/
 
 // Bottom worker executes commands
-int	bottom_worker(char **cmd, int input_fd, int output_fd, int complaints)
+int	bottom_worker(char **cmd, int input_fd, int output_fd)
 {
 	char	*exe;
 	extern char	**environ;
 	pid_t	pid;
 	int		status;
+	int		middle_fd[2];
 
 	exe = find_cmd(cmd[0]);
+	pipe(middle_fd);
 	pid = fork();
 	if (pid == 0)
 	{
-		dup2(input_fd, STDIN_FILENO);
-		dup2(output_fd, STDOUT_FILENO);
-		dup2(complaints, STDERR_FILENO);
+		close(middle_fd[PIPE_READ]);
+//		ft_printf("Bottom: input %d output %d errput %d\n", input_fd, output_fd, middle_fd[PIPE_WRITE]);
+		bottom_duplicator(input_fd, output_fd, middle_fd[PIPE_WRITE]);
 		if (check_file_access(exe))
 			execve(exe, cmd, environ);
 		exit(errno);
 	}
+	close(middle_fd[PIPE_WRITE]);
+//	ft_printf("Middle: started pid %d\n", pid);
+//	ft_printf("Middle: closing %d %d\n", input_fd, output_fd);
+	close(input_fd);
+	close(output_fd);
 	status = 0;
 	if (pid > 0)
 	{
-		waitpid(pid, status, 0);
+		waitpid(pid, &status, 0);
 		status = WEXITSTATUS(status);
+		if (status > 0)
+			print_to_stderr(middle_fd[PIPE_READ]);
 	}
+	close (middle_fd[PIPE_READ]);
+//	ft_fprintf(STDERR_FILENO, "pid %d EXE is %s\n", pid, exe);
 	free(exe);
-	return (-1);
+	if (pid < 0)
+		status = (-1);
+	return (status);
 }
 
 // Middle management handles redirections ie. sets up file io
@@ -211,19 +225,21 @@ pid_t	middle_management(char **cmd, int fds[], char *files[], int task)
 {
 	int		local_fds[6];
 	pid_t	pid;
+	int		status;
 
 	copy_int_array(local_fds, fds, 6);
 	pid = fork();
 	if (pid == 0)
 	{
-		dup2(local_fds[STDERR_WRITE], STDERR_FILENO);
+		dup2(local_fds[PIPE_WRITE_STDERR], STDERR_FILENO);
 		close(local_fds[PIPE_READ]);
-		close(local_fds[STDERR_READ]);
+		close(local_fds[PIPE_READ_STDERR]);
 		if (task == ppx_file_input)
-			replace_fd(files[PIPEX_IN], local_fds[INPUT_FD], task);
+			replace_fd(files[PIPEX_IN], &local_fds[INPUT_FD], task);
 		else if (task == ppx_out_trunc)
-			replace_fd(files[PIPEX_OUT], local_fds[OUTPUT_FD], task);
-		exit(bottom_worker(cmd, local_fds[INPUT_FD], local_fds[OUTPUT_FD], local_fds[STDERR_WRITE]));	// Nested exit, problem?
+			replace_fd(files[PIPEX_OUT], &local_fds[OUTPUT_FD], task);
+		status = bottom_worker(cmd, local_fds[INPUT_FD], local_fds[OUTPUT_FD]);
+		exit(status);
 	}
 	return (pid);
 }
@@ -232,12 +248,13 @@ pid_t	middle_management(char **cmd, int fds[], char *files[], int task)
 void	top_executive(char ***cmds, char *files[])
 {
 	int		i;
-	int		fds[6];
+	int		fds[6];	// {PIPE_READ, PIPE_WRITE, PIPE2_READ, PIPE2_WRITE, (input fd)Prev PIPE_READ, ?Output fd?}
 	pid_t	pid;
 	t_list	*process_list;
 
 	i = -1;
 	process_list = NULL;
+	fds[INPUT_FD] = -1;
 	while (cmds[++i] != NULL)
 	{
 		layer_of_pipes(fds);
@@ -245,27 +262,12 @@ void	top_executive(char ***cmds, char *files[])
 			pid = middle_management(cmds[i], fds, files, ppx_file_input);
 		else if (cmds[i + 1] == NULL)
 			pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
-		closing_time(fds);
-		save_process(process_list, pid, cmds[i], fds[STDERR_READ]);
+		close_extra_pipes(fds);
+		save_process(&process_list, pid, cmds[i][0], fds[PIPE_READ_STDERR]);
 	}
-	wait_and_print_errors(process_list);
-//	return (last exit code)
+	close(fds[INPUT_FD]);
+	wait_and_print_errors(&process_list);
 }
-/*
-void	layer_of_pipes(char ***cmds, char *files[])
-{
-	int		fds[6];
-	pid_t	pid;
-	int		i;
-
-	i = -1;
-	while (cmds[++i] != NULL)
-	{
-		pipe(fds);
-		pipe(&fds[2]);
-		pipex_command_handler(cmds[i], fds[PIPE_READ], fds[PIPE_WRITE], fds[2 + PIPE_WRITE], files)
-	}
-}*/
 
 int	main(int argc, char *argv[])
 {
@@ -280,7 +282,7 @@ int	main(int argc, char *argv[])
 	io_files[PIPEX_IN] = argv[1];
 	cmds = get_cmds(&argv[2], argc - 3);
 	io_files[PIPEX_OUT] = argv[argc - 1];
-	pipe_master(cmds, io_files);
+	top_executive(cmds, io_files);
 	free_strarrayarray(&cmds);
 	return (0);
 }

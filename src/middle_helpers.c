@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <unistd.h>
-#include <stdlib.h
+#include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -18,17 +18,20 @@
 
 void	copy_int_array(int *to, int *from, int size)
 {
-	while (size > 0)
+//	ft_printf("Top: Copying");
+	while (size-- > 0)
 	{
+//		ft_printf(" %d", from[size]);
 		to[size] = from[size];
-		size--;
 	}
+//	ft_printf("\n");
 }
 
 void	replace_fd(char *file, int *fd_ptr, int task)
 {
 	int	new_fd;
 
+	new_fd = -1;
 	if (task == ppx_file_input)
 		new_fd = open(file, O_RDONLY);
 	else if (task == ppx_out_trunc)
@@ -36,9 +39,17 @@ void	replace_fd(char *file, int *fd_ptr, int task)
 			S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
 	if (new_fd < 0)
 	{
-		perror(file);
+		if (errno == 2)
+			ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", file);
+		else
+			perror(file);
 		exit(errno);
 	}
-	close(*fd_ptr);
+//	ft_printf("Middle 2: Opened %d\n", new_fd);
+	if (*fd_ptr >= 0)
+	{
+//		ft_printf("Middle 2: Closing %d\n", *fd_ptr);
+		close(*fd_ptr);
+	}
 	*fd_ptr = new_fd;
 }

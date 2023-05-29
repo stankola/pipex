@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 #include <stdlib.h>
 #include "pipex_proc_hdr.h"
-#include <unistd.h>
-#include "libft.h"
 
 t_process_header	*new_process_header(pid_t pid, char *cmd, int err_fd)
 {
@@ -28,7 +26,6 @@ t_process_header	*new_process_header(pid_t pid, char *cmd, int err_fd)
 
 int	match_process_header_to_pid(t_process_header *ph, pid_t *pid)
 {
-	ft_fprintf(STDERR_FILENO, "Matching %d and %d\n", ph->pid, *pid);
 	if (ph->pid == *pid)
 		return (1);
 	return (0);

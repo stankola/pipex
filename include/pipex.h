@@ -11,30 +11,31 @@
 /* ************************************************************************** */
 #ifndef PIPEX_H
 # define PIPEX_H
-# ifndef PIPE_READ
-#  define PIPE_READ 0
-# endif
-# ifndef PIPE_WRITE
-#  define PIPE_WRITE 1
-# endif
 # ifndef PIPEX_IN
 #  define PIPEX_IN 0
 # endif
 # ifndef PIPEX_OUT
 #  define PIPEX_OUT 1
 # endif
-# ifndef STDERR_READ
-#  define STDERR_READ 2 + PIPE_READ
+# ifndef PIPE_READ
+#  define PIPE_READ 0
 # endif
-# ifndef STDERR_WRITE
-#  define STDERR_WRITE 2 + PIPE_WRITE
+# ifndef PIPE_WRITE
+#  define PIPE_WRITE 1
 # endif
-# ifndef OUTPUT_FD
+# ifndef PIPE_READ_STDERR
+#  define PIPE_READ_STDERR PIPE_READ + 2
+# endif
+# ifndef PIPE_WRITE_STDERR
+#  define PIPE_WRITE_STDERR PIPE_WRITE + 2
+# endif
+# ifndef INPUT_FD
 #  define INPUT_FD 4
 # endif
 # ifndef OUTPUT_FD
 #  define OUTPUT_FD 5
 # endif
+# include "libft.h"
 
 enum	e_pipex_cases
 {
@@ -71,6 +72,16 @@ void		replace_fd(char *file, int *fd_ptr, int task);
 
 void		layer_of_pipes(int fds[]);
 
-void		closing_time(int fd[]);
+void		close_extra_pipes(int fd[]);
+
+void		save_process(t_list **process_list, pid_t pid, char *cmd, int err_df);
+
+void		wait_and_print_errors(t_list **process_list);
+
+t_list		*ft_lstgetmatch(t_list **list, int (*f)(void *, void *), void *term);
+
+void		print_to_stderr(int source_fd);
+
+void		bottom_duplicator(int input, int output, int errput);
 
 #endif
