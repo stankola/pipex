@@ -109,7 +109,7 @@ int	top_executive(char ***cmds, char *files[], int pipecount)
 	while (cmds[++i] != NULL && layer_of_pipes(fds) >= 0)
 	{
 		if (i == 0 && ft_strncmp("here_doc", files[PIPEX_IN],
-				ft_strlen(files[PIPEX_IN])) == 0)
+				ft_strlen(files[PIPEX_IN]) + 1) == 0)
 			heredoc_reader(cmds[0][0], fds[PIPE_WRITE], pipecount);
 		else
 			pid = executive_decision(i, cmds, fds, files);
@@ -131,7 +131,7 @@ int	main(int argc, char *argv[])
 		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
 		return (-1);
 	}
-	if (ft_strncmp(argv[1], "here_doc", ft_strlen(argv[1])) == 0)
+	if (ft_strncmp(argv[1], "here_doc", ft_strlen(argv[1]) + 1) == 0)
 		cmds = get_cmds(&argv[2], argc - 3, 1);
 	else
 		cmds = get_cmds(&argv[2], argc - 3, 0);
