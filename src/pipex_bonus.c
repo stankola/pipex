@@ -85,7 +85,7 @@ pid_t	executive_decision(int i, char ***cmds, int fds[], char *files[])
 	if (i == 0)
 		pid = middle_management(cmds[i], fds, files, ppx_file_input);
 	else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN],
-			ft_strlen(files[PIPEX_IN])) == 0)
+			ft_strlen(files[PIPEX_IN]) - 1) == 0)
 		pid = middle_management(cmds[i], fds, files, ppx_out_append);
 	else if (cmds[i + 1] == NULL)
 		pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
