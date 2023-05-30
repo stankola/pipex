@@ -8,4 +8,4 @@ copy ft_lstgetmatch to libft
 
 * Make sure the error messages are of format "message":"filename" ???
 
-return last process return value
+* return last process return value

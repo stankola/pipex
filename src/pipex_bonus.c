@@ -139,5 +139,5 @@ int	main(int argc, char *argv[])
 	io_files[PIPEX_OUT] = argv[argc - 1];
 	return_value = top_executive(cmds, io_files, argc - 4);
 	free_strarrayarray(&cmds);
-	return (0);
+	return (return_value);
 }
