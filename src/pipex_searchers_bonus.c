@@ -11,19 +11,29 @@
 /* ************************************************************************** */
 #include <unistd.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "libft.h"
 #include "pipex_bonus.h"
 
-char	***get_cmds(char *argv[], int argc)
+char	***get_cmds(char *argv[], int argc, int here_doc)
 {
 	int		i;
 	char	***cmds;
+	char	**here_doc_cmd;
 
 	i = 0;
 	cmds = ft_calloc(sizeof(char **), (argc + 1));
 	while (i < argc)
 	{
-		cmds[i] = ft_split(argv[i], ' ');
+		if (here_doc && i == 0)
+		{
+			here_doc_cmd = ft_calloc(sizeof(char *), 2);
+			here_doc_cmd[0] = ft_strdup(argv[i]);
+			here_doc_cmd[1] = NULL;
+			cmds[i] = here_doc_cmd;
+		}
+		else
+			cmds[i] = ft_split(argv[i], ' ');
 		i++;
 	}
 	return (cmds);
@@ -103,9 +113,14 @@ int	check_file_access(char *cmd)
 	if (access(cmd, F_OK) != 0)
 	{
 		if (ft_strchr(cmd, '/'))
-			ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", cmd);
+			pipex_print_error(errno, cmd);
 		else
 			ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
+		return (0);
+	}
+	if (access(cmd, X_OK) != 0)
+	{
+		pipex_print_error(errno, cmd);
 		return (0);
 	}
 	return (1);

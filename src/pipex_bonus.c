@@ -84,7 +84,8 @@ pid_t	executive_decision(int i, char ***cmds, int fds[], char *files[])
 
 	if (i == 0)
 		pid = middle_management(cmds[i], fds, files, ppx_file_input);
-	else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(files[PIPEX_IN]) == 0))
+	else if (cmds[i + 1] == NULL && ft_strncmp("here_doc", files[PIPEX_IN],
+			ft_strlen(files[PIPEX_IN])) == 0)
 		pid = middle_management(cmds[i], fds, files, ppx_out_append);
 	else if (cmds[i + 1] == NULL)
 		pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
@@ -94,7 +95,7 @@ pid_t	executive_decision(int i, char ***cmds, int fds[], char *files[])
 }
 
 // Top executive handles pipelines
-void	top_executive(char ***cmds, char *files[], int pipecount)
+int	top_executive(char ***cmds, char *files[], int pipecount)
 {
 	int		i;
 	int		fds[6];
@@ -107,32 +108,36 @@ void	top_executive(char ***cmds, char *files[], int pipecount)
 	fds[INPUT_FD] = -1;
 	while (cmds[++i] != NULL && layer_of_pipes(fds) >= 0)
 	{
-		if (i == 0 && ft_strncmp("here_doc", files[PIPEX_IN], ft_strlen(files[PIPEX_IN]) == 0))
+		if (i == 0 && ft_strncmp("here_doc", files[PIPEX_IN],
+				ft_strlen(files[PIPEX_IN])) == 0)
 			heredoc_reader(cmds[0][0], fds[PIPE_WRITE], pipecount);
-		else 
+		else
 			pid = executive_decision(i, cmds, fds, files);
 		close_extra_pipes(fds);
 		save_process(&process_list, pid, cmds[i][0], fds[PIPE_READ_STDERR]);
 	}
 	close(fds[INPUT_FD]);
-	wait_for_processes_to_end(&process_list);
+	return (wait_for_processes_to_end(&process_list));
 }
 
 int	main(int argc, char *argv[])
 {
 	char	***cmds;
 	char	*io_files[2];
+	int		return_value;
 
 	if (argc < 5)
 	{
 		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
 		return (-1);
 	}
-//	if (ft_strncmp("here_doc", argv[1], ft_strlen(argv[1])) == 0) //  is this check needed here??
-	cmds = get_cmds(&argv[2], argc - 3);
+	if (ft_strncmp(argv[1], "here_doc", ft_strlen(argv[1])) == 0)
+		cmds = get_cmds(&argv[2], argc - 3, 1);
+	else
+		cmds = get_cmds(&argv[2], argc - 3, 0);
 	io_files[PIPEX_IN] = argv[1];
 	io_files[PIPEX_OUT] = argv[argc - 1];
-	top_executive(cmds, io_files, argc - 4);
+	return_value = top_executive(cmds, io_files, argc - 4);
 	free_strarrayarray(&cmds);
 	return (0);
 }

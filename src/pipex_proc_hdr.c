@@ -15,6 +15,7 @@
 t_process_header	*new_process_header(pid_t pid, char *cmd, int err_fd)
 {
 	t_process_header	*ph;
+
 	ph = malloc(sizeof(t_process_header));
 	if (ph == NULL)
 		return (NULL);

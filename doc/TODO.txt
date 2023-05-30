@@ -1,9 +1,11 @@
 Remove unused headers.
 
+check bonus file headers
+
 Test for memory leaks!
 
 copy ft_lstgetmatch to libft
 
-Make sure the error messages are of format "message":"filename" ???
+* Make sure the error messages are of format "message":"filename" ???
 
 return last process return value

@@ -105,6 +105,7 @@ void	wait_for_processes_to_end(t_list **process_list)
 	int					status;
 	t_process_header	*ph;
 	t_list				*temp_list;
+	
 	// TODO: Return return value of last process
 	pid = wait(&status);
 	while (pid >= 0)

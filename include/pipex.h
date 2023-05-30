@@ -41,14 +41,6 @@ void		free_strarray(char ***array);
 
 void		free_strarrayarray(char ****array);
 
-void		pipe_file_input(char **cmds, char *input_file, int output_fd);
-
-void		pipe_file_output_append(char **cmds, int input_fd, char *output_file);
-
-void		pipe_file_output_trunc(char **cmds, int input_fd, char *output_file);
-
-void		pipe_command(char **cmds, int input_fd, int output_fd);
-
 void		copy_int_array(int *to, int *from, int size);
 
 void		replace_fd(char *file, int *fd_ptr, int task);
@@ -68,6 +60,8 @@ t_list		*ft_lstgetmatch(t_list **list, int (*f)(void *, void *),
 				void *term);
 
 void		print_to_stderr(int source_fd);
+
+void		pipex_print_error(int errnum, char *s);
 
 void		bottom_duplicator(int input, int output, int errput);
 

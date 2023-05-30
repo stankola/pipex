@@ -46,7 +46,8 @@ OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
 _SRC_BONUS = pipex_bonus.c pipex_helpers_bonus.c pipex_proc_hdr_bonus.c \
 		pipex_searchers_bonus.c pipex_heredoc_bonus.c top_helpers_bonus.c \
-		middle_helpers_bonus.c bottom_helpers_bonus.c
+		middle_helpers_bonus.c bottom_helpers_bonus.c \
+		pipex_character_buffer_bonus.c
 SRC_BONUS = $(patsubst %, $(SRCDIR)/%, $(_SRC_BONUS))
 
 _OBJ_BONUS = $(patsubst %.c, %.o, $(_SRC_BONUS))

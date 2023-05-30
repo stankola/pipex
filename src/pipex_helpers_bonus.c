@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
 #include "pipex_bonus.h"
 #ifndef CBUF_LENGTH
 # define CBUF_LENGTH 256
@@ -66,4 +67,12 @@ void	print_to_stderr(int source_fd)
 		cbuf[c_count - 1] = '\0';
 		ft_fprintf(STDERR_FILENO, "%s\n", cbuf);
 	}
+}
+
+void	pipex_print_error(int errnum, char *s)
+{
+	char	*output;
+
+	output = strerror(errnum);
+	ft_fprintf(STDERR_FILENO, "%s: %s\n", output, s);
 }

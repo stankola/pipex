@@ -30,7 +30,7 @@ enum	e_pipex_cases
 	ppx_out_trunc
 };
 
-char		***get_cmds(char *argv[], int argc);
+char		***get_cmds(char *argv[], int argc, int here_doc);
 
 char		**get_env_path_value(void);
 
@@ -46,14 +46,6 @@ void		free_strarray(char ***array);
 
 void		free_strarrayarray(char ****array);
 
-void		pipe_file_input(char **cmds, char *input_file, int output_fd);
-
-void		pipe_file_output_append(char **cmds, int input_fd, char *output_file);
-
-void		pipe_file_output_trunc(char **cmds, int input_fd, char *output_file);
-
-void		pipe_command(char **cmds, int input_fd, int output_fd);
-
 void		copy_int_array(int *to, int *from, int size);
 
 void		replace_fd(char *file, int *fd_ptr, int task);
@@ -67,7 +59,7 @@ void		save_process(t_list **process_list, pid_t pid, char *cmd,
 
 int			wait_and_print_errors(int output_fd);
 
-void		wait_for_processes_to_end(t_list **process_list);
+int			wait_for_processes_to_end(t_list **process_list);
 
 t_list		*ft_lstgetmatch(t_list **list, int (*f)(void *, void *),
 				void *term);
@@ -77,5 +69,7 @@ void		print_to_stderr(int source_fd);
 void		bottom_duplicator(int input, int output, int errput);
 
 void		bottom_closer_for_middleman(int fd_a, int fd_b, int fd_c);
+
+void		pipex_print_error(int errnum, char *s);
 
 #endif
