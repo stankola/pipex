@@ -99,26 +99,31 @@ void	save_process(t_list **process_list, pid_t pid, char *cmd, int err_fd)
 	}
 }
 
-void	wait_for_processes_to_end(t_list **process_list)
+int	wait_for_processes_to_end(t_list **process_list)
 {
-	pid_t				pid;
+	pid_t				pid[2];
 	int					status;
 	t_process_header	*ph;
 	t_list				*temp_list;
-	
-	// TODO: Return return value of last process
-	pid = wait(&status);
-	while (pid >= 0)
+	int					last_value;
+
+	last_value = 0;
+	pid[1] = ((t_process_header *)(*process_list)->content)->pid;
+	pid[0] = wait(&status);
+	while (pid[0] >= 0)
 	{
 		temp_list = ft_lstgetmatch(process_list,
 				(int (*)(void *, void *))match_process_header_to_pid,
-				(void *)&pid);
+				(void *)&pid[0]);
 		ph = (t_process_header *)temp_list->content;
 		free(temp_list);
+		if (ph->pid == pid[1])
+			last_value = WEXITSTATUS(status);
 		if (WEXITSTATUS(status) > 0)
 			print_to_stderr(ph->err_fd);
 		close(ph->err_fd);
 		free(ph);
-		pid = wait(&status);
+		pid[0] = wait(&status);
 	}
+	return (last_value);
 }

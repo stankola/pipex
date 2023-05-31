@@ -2,7 +2,7 @@ Remove unused headers.
 
 check bonus file headers
 
-Test for memory leaks!
+* Test for memory leaks!
 
 copy ft_lstgetmatch to libft
 

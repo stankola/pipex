@@ -21,21 +21,6 @@
 #include "pipex.h"
 #include "pipex_proc_hdr.h"
 
-char	***get_cmds(char *argv[], int argc)
-{
-	int		i;
-	char	***cmds;
-
-	i = 0;
-	cmds = ft_calloc(sizeof(char **), (argc + 1));
-	while (i < argc)
-	{
-		cmds[i] = ft_split(argv[i], ' ');
-		i++;
-	}
-	return (cmds);
-}
-
 // Bottom worker executes commands
 int	bottom_worker(char **cmd, int input_fd, int output_fd)
 {
@@ -93,7 +78,7 @@ pid_t	middle_management(char **cmd, int fds[], char *files[], int task)
 }
 
 // Top executive handles pipelines
-void	top_executive(char ***cmds, char *files[])
+int	top_executive(char ***cmds, char *files[])
 {
 	int		i;
 	int		fds[6];
@@ -115,13 +100,14 @@ void	top_executive(char ***cmds, char *files[])
 		save_process(&process_list, pid, cmds[i][0], fds[PIPE_READ_STDERR]);
 	}
 	close(fds[INPUT_FD]);
-	wait_for_processes_to_end(&process_list);
+	return(wait_for_processes_to_end(&process_list));
 }
 
 int	main(int argc, char *argv[])
 {
 	char	***cmds;
 	char	*io_files[2];
+	int		return_value;
 
 	if (argc != 5)
 	{
@@ -131,7 +117,7 @@ int	main(int argc, char *argv[])
 	io_files[PIPEX_IN] = argv[1];
 	cmds = get_cmds(&argv[2], argc - 3);
 	io_files[PIPEX_OUT] = argv[argc - 1];
-	top_executive(cmds, io_files);
+	return_value = top_executive(cmds, io_files);
 	free_strarrayarray(&cmds);
-	return (0);
+	return (return_value);
 }

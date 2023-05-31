@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 #include "pipex.h"
@@ -34,10 +33,7 @@ void	replace_fd(char *file, int *fd_ptr, int task)
 				S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
 	if (new_fd < 0)
 	{
-		if (errno == 2)
-			ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", file);
-		else
-			perror(file);
+		pipex_print_error(errno, file);
 		exit(errno);
 	}
 	if (*fd_ptr >= 0)

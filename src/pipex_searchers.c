@@ -11,8 +11,25 @@
 /* ************************************************************************** */
 #include <unistd.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "libft.h"
 #include "pipex.h"
+
+
+char	***get_cmds(char *argv[], int argc)
+{
+	int		i;
+	char	***cmds;
+
+	i = 0;
+	cmds = ft_calloc(sizeof(char **), (argc + 1));
+	while (i < argc)
+	{
+		cmds[i] = ft_split(argv[i], ' ');
+		i++;
+	}
+	return (cmds);
+}
 
 char	**get_env_path_value(void)
 {
@@ -85,13 +102,22 @@ char	*get_full_path(char const *path, char const *file)
 
 int	check_file_access(char *cmd)
 {
+	int	errnum;
+
 	if (access(cmd, F_OK) != 0)
 	{
+		errnum = errno;
 		if (ft_strchr(cmd, '/'))
-			ft_fprintf(STDERR_FILENO, "no such file or directory: %s\n", cmd);
+			pipex_print_error(errnum, cmd);
 		else
 			ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
-		return (0);
+		return (errnum);
 	}
-	return (1);
+	if (access(cmd, X_OK) != 0)
+	{
+		errnum = errno;
+		pipex_print_error(errnum, cmd);
+		return (errnum);
+	}
+	return (0);
 }

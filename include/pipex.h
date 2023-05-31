@@ -27,6 +27,8 @@ enum	e_pipex_cases
 	ppx_out_trunc
 };
 
+char		***get_cmds(char *argv[], int argc);
+
 char		**get_env_path_value(void);
 
 char		*find_cmd(char *exe);
@@ -54,7 +56,7 @@ void		save_process(t_list **process_list, pid_t pid, char *cmd,
 
 int			wait_and_print_errors(int output_fd);
 
-void		wait_for_processes_to_end(t_list **process_list);
+int			wait_for_processes_to_end(t_list **process_list);
 
 t_list		*ft_lstgetmatch(t_list **list, int (*f)(void *, void *),
 				void *term);
