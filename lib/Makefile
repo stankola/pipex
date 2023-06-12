@@ -32,7 +32,7 @@ SRC =	$(patsubst %, $(SRCDIR)/%, $(_SRC))
 _INC =	libft.h
 INC =	$(patsubst %, $(INCDIR)/%, $(_INC))
 
-_OBJ =	$(patsubst %.c, %.o, $(_SRC)) #SRC:%.c=%.o)
+_OBJ =	$(patsubst %.c, %.o, $(_SRC))
 OBJ =	$(patsubst %, $(OBJDIR)/%, $(_OBJ))
 
 .PHONY: all
@@ -50,6 +50,7 @@ $(NAME): $(OBJ)
 
 clean:
 	rm -f $(OBJ)
+	rmdir $(OBJDIR) 2> /dev/null || true
 
 fclean: clean
 	rm -f $(NAME)

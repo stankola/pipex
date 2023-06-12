@@ -104,3 +104,10 @@ cat | sort | ls | cat | wc
 'here_doc' '' > cat | head -n 7 | ls
 
 '' => NULL
+
+Things to consider
+
+"" : empty strings as arguments
+awk (or something similar) with '' escapes (probably not required, these are essentially shell features)
+'\ ' : Escape characters
+makefile : avoid bonus relink

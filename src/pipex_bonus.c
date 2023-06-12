@@ -26,22 +26,17 @@
 int	bottom_worker(char **cmd, int input_fd, int output_fd)
 {
 	char		*exe;
-	extern char	**environ;
 	pid_t		pid;
 	int			status;
 	int			middle_fd[2];
 
+	status = pipe(middle_fd);
+	if (status < 0)
+		return (status);
 	exe = find_cmd(cmd[0]);
-	pipe(middle_fd);
 	pid = fork();
 	if (pid == 0)
-	{
-		close(middle_fd[PIPE_READ]);
-		bottom_duplicator(input_fd, output_fd, middle_fd[PIPE_WRITE]);
-		if (check_file_access(exe))
-			execve(exe, cmd, environ);
-		exit(errno);
-	}
+		bottom_work(cmd, exe, middle_fd, (int []){input_fd, output_fd});
 	close(middle_fd[PIPE_WRITE]);
 	if (pid > 0)
 		status = wait_and_print_errors(middle_fd[PIPE_READ]);
@@ -128,7 +123,7 @@ int	main(int argc, char *argv[])
 
 	if (argc < 5)
 	{
-		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
+		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc - 1);
 		return (-1);
 	}
 	if (ft_strncmp(argv[1], "here_doc", ft_strlen(argv[1]) + 1) == 0)

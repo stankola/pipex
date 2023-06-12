@@ -9,9 +9,11 @@
 /*   Updated: 2023/05/29 17:19:50 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "pipex.h"
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include "pipex.h"
 
 void	bottom_duplicator(int input, int output, int errput)
 {
@@ -37,4 +39,16 @@ int	wait_and_print_errors(int output_fd)
 			print_to_stderr(output_fd);
 	}
 	return (WEXITSTATUS(status));
+}
+
+void	bottom_work(char **cmd, char *exe, int middle_fd[], int io_fd[])
+{
+	extern char	**environ;
+
+	close(middle_fd[PIPE_READ]);
+	bottom_duplicator(io_fd[PIPE_READ], io_fd[PIPE_WRITE],
+		middle_fd[PIPE_WRITE]);
+	check_file_access(exe);
+	execve(exe, cmd, environ);
+	exit(errno);
 }

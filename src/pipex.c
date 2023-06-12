@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/20 18:23:58 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/20 18:23:59 by tsankola         ###   ########.fr       */
+/*   Created: 2023/05/26 23:25:34 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 23:25:45 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include <unistd.h>
@@ -25,22 +25,17 @@
 int	bottom_worker(char **cmd, int input_fd, int output_fd)
 {
 	char		*exe;
-	extern char	**environ;
 	pid_t		pid;
 	int			status;
 	int			middle_fd[2];
 
+	status = pipe(middle_fd);
+	if (status < 0)
+		return (status);
 	exe = find_cmd(cmd[0]);
-	pipe(middle_fd);
 	pid = fork();
 	if (pid == 0)
-	{
-		close(middle_fd[PIPE_READ]);
-		bottom_duplicator(input_fd, output_fd, middle_fd[PIPE_WRITE]);
-		if (check_file_access(exe))
-			execve(exe, cmd, environ);
-		exit(errno);
-	}
+		bottom_work(cmd, exe, middle_fd, (int []){input_fd, output_fd});
 	close(middle_fd[PIPE_WRITE]);
 	if (pid > 0)
 		status = wait_and_print_errors(middle_fd[PIPE_READ]);
@@ -67,13 +62,26 @@ pid_t	middle_management(char **cmd, int fds[], char *files[], int task)
 		close(local_fds[PIPE_READ_STDERR]);
 		if (task == ppx_file_input)
 			replace_fd(files[PIPEX_IN], &local_fds[INPUT_FD], task);
-		else if (task == ppx_out_trunc)
+		else if (task == ppx_out_trunc || task == ppx_out_append)
 			replace_fd(files[PIPEX_OUT], &local_fds[OUTPUT_FD], task);
 		status = bottom_worker(cmd, local_fds[INPUT_FD], local_fds[OUTPUT_FD]);
 		close(local_fds[INPUT_FD]);
 		close(local_fds[OUTPUT_FD]);
 		exit(status);
 	}
+	return (pid);
+}
+
+pid_t	executive_decision(int i, char ***cmds, int fds[], char *files[])
+{
+	pid_t	pid;
+
+	if (i == 0)
+		pid = middle_management(cmds[i], fds, files, ppx_file_input);
+	else if (cmds[i + 1] == NULL)
+		pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
+	else
+		pid = middle_management(cmds[i], fds, files, ppx_midpoint);
 	return (pid);
 }
 
@@ -86,21 +94,17 @@ int	top_executive(char ***cmds, char *files[])
 	t_list	*process_list;
 
 	i = -1;
+	pid = -1;
 	process_list = NULL;
 	fds[INPUT_FD] = -1;
-	while (cmds[++i] != NULL)
+	while (cmds[++i] != NULL && layer_of_pipes(fds) >= 0)
 	{
-		if (layer_of_pipes(fds) < 0)
-			break ;
-		if (i == 0)
-			pid = middle_management(cmds[i], fds, files, ppx_file_input);
-		else if (cmds[i + 1] == NULL)
-			pid = middle_management(cmds[i], fds, files, ppx_out_trunc);
+		pid = executive_decision(i, cmds, fds, files);
 		close_extra_pipes(fds);
 		save_process(&process_list, pid, cmds[i][0], fds[PIPE_READ_STDERR]);
 	}
 	close(fds[INPUT_FD]);
-	return(wait_for_processes_to_end(&process_list));
+	return (wait_for_processes_to_end(&process_list));
 }
 
 int	main(int argc, char *argv[])
@@ -111,11 +115,11 @@ int	main(int argc, char *argv[])
 
 	if (argc != 5)
 	{
-		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc);
+		ft_fprintf(STDERR_FILENO, "Wrong number of arguments %d\n", argc - 1);
 		return (-1);
 	}
-	io_files[PIPEX_IN] = argv[1];
 	cmds = get_cmds(&argv[2], argc - 3);
+	io_files[PIPEX_IN] = argv[1];
 	io_files[PIPEX_OUT] = argv[argc - 1];
 	return_value = top_executive(cmds, io_files);
 	free_strarrayarray(&cmds);

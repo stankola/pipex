@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/26 15:26:23 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/26 15:26:28 by tsankola         ###   ########.fr       */
+/*   Created: 2023/05/26 23:26:35 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 23:26:49 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef PIPEX_H
@@ -24,6 +24,9 @@
 enum	e_pipex_cases
 {
 	ppx_file_input,
+	ppx_here_input,
+	ppx_midpoint,
+	ppx_out_append,
 	ppx_out_trunc
 };
 
@@ -35,7 +38,7 @@ char		*find_cmd(char *exe);
 
 char		*get_full_path(char const *path, char const *file);
 
-int			check_file_access(char *cmd);
+void		check_file_access(char *cmd);
 
 int			is_directory(char *file);
 
@@ -63,10 +66,12 @@ t_list		*ft_lstgetmatch(t_list **list, int (*f)(void *, void *),
 
 void		print_to_stderr(int source_fd);
 
-void		pipex_print_error(int errnum, char *s);
-
 void		bottom_duplicator(int input, int output, int errput);
 
 void		bottom_closer_for_middleman(int fd_a, int fd_b, int fd_c);
+
+void		bottom_work(char **cmd, char *exe, int middle_fd[], int io_fd[]);
+
+void		pipex_print_error(int errnum, char *s);
 
 #endif

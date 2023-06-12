@@ -28,13 +28,6 @@ OBJDIR = obj
 
 INCDIR = include
 
-TEST1 = test/1.i "/bin/cat" "/usr/bin/wc -l" 1.out
-TEST2 = test/2.i sort "wc -m" 2.out
-TEST3 = test/1.i "test/3.sleeptest.sh" "wc -m" 3.out
-TEST4 = test/4.hardlink.i cat "wc -l" 4.out
-TEST5 = test/5.symlink.i cat "wc -l" 5.out
-TEST6 = test/6.brokelink.i cat "wc -l" 6.out
-
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
 _SRC = pipex.c pipex_helpers.c pipex_searchers.c pipex_proc_hdr.c \
@@ -70,22 +63,19 @@ LIB_INC = $(patsubst %, $(LIB_INCDIR)/%, $(_LIB_INC))
 
 all: $(NAME)
 
-bonus: $(OBJ_BONUS) $(INC_BONUS) $(LIB)
+bonus: .bonus
+
+.bonus: $(OBJ_BONUS) $(INC_BONUS) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_BONUS) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME_BONUS)
+	@touch .bonus
+	@rm -f .mandatory
 
 sanitizer: $(OBJ)
 	$(CC) $(CFLAGS) $(SFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
 
 suppress: $(SRC) $(LIB) $(INC)
-	$(CC) $(SRC) -I$(INCDIR) -I$(LIB_INCDIR) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
-
-test: $(NAME)
-	$(addprefix ./, $(NAME)) $(TEST1)
-	$(addprefix ./, $(NAME)) $(TEST2)
-	$(addprefix ./, $(NAME)) $(TEST3)
-	$(addprefix ./, $(NAME)) $(TEST4)
-	$(addprefix ./, $(NAME)) $(TEST5)
-	$(addprefix ./, $(NAME)) $(TEST6)
+	$(CC) $(SRC) -I$(INCDIR) -I$(LIB_INCDIR) -L$(LIBDIR) -l$(LIB_NAME) \
+	-o $(NAME)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -96,8 +86,12 @@ $(LIB):
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INC) $(LIB_INC) | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -I$(INCDIR) -I$(LIB_INCDIR) -o $@
 
-$(NAME): $(OBJ) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $@
+$(NAME): .mandatory
+
+.mandatory: $(OBJ) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ) -L$(LIBDIR) -l$(LIB_NAME) -o $(NAME)
+	@touch .mandatory
+	@rm -f .bonus
 
 clean:
 	rm -f $(OBJ)
@@ -110,5 +104,7 @@ clean:
 
 fclean: clean
 	rm -f $(NAME)
+	@rm -f .bonus
+	@rm -f .mandatory
 
 re: fclean all

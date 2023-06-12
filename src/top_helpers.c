@@ -11,8 +11,8 @@
 /* ************************************************************************** */
 #include <unistd.h>
 #include <stdio.h>
-#include "pipex.h"
 #include "libft.h"
+#include "pipex.h"
 #include "pipex_proc_hdr.h"
 
 int	layer_of_pipes(int fds[])

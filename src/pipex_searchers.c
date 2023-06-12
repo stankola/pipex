@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/26 15:58:37 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/26 15:58:37 by tsankola         ###   ########.fr       */
+/*   Created: 2023/05/26 23:26:10 by tsankola          #+#    #+#             */
+/*   Updated: 2023/05/26 23:26:19 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include <unistd.h>
@@ -14,7 +14,7 @@
 #include <errno.h>
 #include "libft.h"
 #include "pipex.h"
-
+#include <stdio.h>
 
 char	***get_cmds(char *argv[], int argc)
 {
@@ -28,6 +28,19 @@ char	***get_cmds(char *argv[], int argc)
 		cmds[i] = ft_split(argv[i], ' ');
 		i++;
 	}
+/*ft_printf("%s %s\n", cmds[0][0], argv[0]);
+	ft_printf("%p\n", *cmds[0]);
+	if (cmds[0] == NULL)
+		ft_printf("well\n");
+//	char *s = find_cmd(*cmds[0]);
+//	ft_printf("%p\n", s);
+		ft_printf("cmd %s\n", find_cmd(cmds[0][0]));
+	if (access(cmds[0][0], F_OK) != 0)
+	{
+		ft_printf("cmd %s not found: ", cmds[0][0]);
+		perror(NULL);
+	}
+	exit(1);*/
 	return (cmds);
 }
 
@@ -56,6 +69,8 @@ char	*find_cmd(char *exe)
 	char	**path_iterator;
 	char	*full_location;
 
+	if (exe == NULL)
+		return (NULL);
 	if (ft_strchr(exe, '/'))
 		return (ft_strdup(exe));
 	env_path = get_env_path_value();
@@ -100,24 +115,29 @@ char	*get_full_path(char const *path, char const *file)
 	return (result);
 }
 
-int	check_file_access(char *cmd)
+void	check_file_access(char *cmd)
 {
-	int	errnum;
-
+	if (cmd == NULL)
+	{
+		ft_fprintf(STDERR_FILENO, "command not found: \0\n");
+		exit (127);
+	}
 	if (access(cmd, F_OK) != 0)
 	{
-		errnum = errno;
 		if (ft_strchr(cmd, '/'))
-			pipex_print_error(errnum, cmd);
+			pipex_print_error(errno, cmd);
 		else
-			ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
-		return (errnum);
+		{
+			if (cmd == NULL)
+				ft_fprintf(STDERR_FILENO, "command not found: %c\n", '\0');
+			else
+				ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
+		}
+		exit (127);
 	}
 	if (access(cmd, X_OK) != 0)
 	{
-		errnum = errno;
-		pipex_print_error(errnum, cmd);
-		return (errnum);
+		pipex_print_error(errno, cmd);
+		exit (errno);
 	}
-	return (0);
 }

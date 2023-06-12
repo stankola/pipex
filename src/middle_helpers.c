@@ -29,7 +29,10 @@ void	replace_fd(char *file, int *fd_ptr, int task)
 	if (task == ppx_file_input)
 		new_fd = open(file, O_RDONLY);
 	else if (task == ppx_out_trunc)
-			new_fd = open(file, O_WRONLY | O_CREAT | O_TRUNC,
+		new_fd = open(file, O_WRONLY | O_CREAT | O_TRUNC,
+				S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
+	else if (task == ppx_out_append)
+		new_fd = open(file, O_WRONLY | O_CREAT | O_APPEND,
 				S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP);
 	if (new_fd < 0)
 	{

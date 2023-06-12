@@ -38,7 +38,7 @@ char		*find_cmd(char *exe);
 
 char		*get_full_path(char const *path, char const *file);
 
-int			check_file_access(char *cmd);
+void		check_file_access(char *cmd);
 
 int			is_directory(char *file);
 
@@ -69,6 +69,8 @@ void		print_to_stderr(int source_fd);
 void		bottom_duplicator(int input, int output, int errput);
 
 void		bottom_closer_for_middleman(int fd_a, int fd_b, int fd_c);
+
+void		bottom_work(char **cmd, char *exe, int middle_fd[], int io_fd[]);
 
 void		pipex_print_error(int errnum, char *s);
 

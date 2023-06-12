@@ -64,6 +64,8 @@ char	*find_cmd(char *exe)
 	char	**path_iterator;
 	char	*full_location;
 
+	if (exe == NULL)
+		return (NULL);
 	if (ft_strchr(exe, '/'))
 		return (ft_strdup(exe));
 	env_path = get_env_path_value();
@@ -108,20 +110,29 @@ char	*get_full_path(char const *path, char const *file)
 	return (result);
 }
 
-int	check_file_access(char *cmd)
+void	check_file_access(char *cmd)
 {
+	if (cmd == NULL)
+	{
+		ft_fprintf(STDERR_FILENO, "command not found: ");
+		exit (127);
+	}
 	if (access(cmd, F_OK) != 0)
 	{
 		if (ft_strchr(cmd, '/'))
 			pipex_print_error(errno, cmd);
 		else
-			ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
-		return (0);
+		{
+			if (cmd == NULL)
+				ft_fprintf(STDERR_FILENO, "command not found: %c\n", '\0');
+			else
+				ft_fprintf(STDERR_FILENO, "command not found: %s\n", cmd);
+		}
+		exit (127);
 	}
 	if (access(cmd, X_OK) != 0)
 	{
 		pipex_print_error(errno, cmd);
-		return (0);
+		exit (errno);
 	}
-	return (1);
 }
