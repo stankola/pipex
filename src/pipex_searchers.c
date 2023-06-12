@@ -28,19 +28,6 @@ char	***get_cmds(char *argv[], int argc)
 		cmds[i] = ft_split(argv[i], ' ');
 		i++;
 	}
-/*ft_printf("%s %s\n", cmds[0][0], argv[0]);
-	ft_printf("%p\n", *cmds[0]);
-	if (cmds[0] == NULL)
-		ft_printf("well\n");
-//	char *s = find_cmd(*cmds[0]);
-//	ft_printf("%p\n", s);
-		ft_printf("cmd %s\n", find_cmd(cmds[0][0]));
-	if (access(cmds[0][0], F_OK) != 0)
-	{
-		ft_printf("cmd %s not found: ", cmds[0][0]);
-		perror(NULL);
-	}
-	exit(1);*/
 	return (cmds);
 }
 
