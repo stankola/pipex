@@ -25,7 +25,7 @@ char	***get_cmds(char *argv[], int argc)
 	cmds = ft_calloc(sizeof(char **), (argc + 1));
 	while (i < argc)
 	{
-		cmds[i] = ft_split(argv[i], ' ');
+		cmds[i] = get_cmd_and_params(argv[i]);
 		i++;
 	}
 	return (cmds);

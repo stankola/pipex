@@ -108,6 +108,7 @@ cat | sort | ls | cat | wc
 Things to consider
 
 * "" : empty strings as arguments
-awk (or something similar) with '' escapes (probably not required, these are essentially shell features)
+*awk (or something similar) with '' escapes (probably not required, these are essentially shell features)
 '\ ' : Escape characters
 * makefile : avoid bonus relink
+Confirm that child processes do not leak memory

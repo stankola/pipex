@@ -33,7 +33,7 @@ char	***get_cmds(char *argv[], int argc, int here_doc)
 			cmds[i] = here_doc_cmd;
 		}
 		else
-			cmds[i] = ft_split(argv[i], ' ');
+			cmds[i] = get_cmd_and_params(argv[i]);
 		i++;
 	}
 	return (cmds);

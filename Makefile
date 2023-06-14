@@ -31,7 +31,7 @@ INCDIR = include
 LIB_INCDIR = $(LIBDIR)/$(INCDIR)
 
 _SRC = pipex.c pipex_helpers.c pipex_searchers.c pipex_proc_hdr.c \
-		top_helpers.c middle_helpers.c bottom_helpers.c
+		top_helpers.c middle_helpers.c bottom_helpers.c parsing.c
 SRC = $(patsubst %, $(SRCDIR)/%, $(_SRC))
 
 _OBJ = $(patsubst %.c, %.o, $(_SRC))
@@ -40,7 +40,7 @@ OBJ = $(patsubst %, $(OBJDIR)/%, $(_OBJ))
 _SRC_BONUS = pipex_bonus.c pipex_helpers_bonus.c pipex_proc_hdr_bonus.c \
 		pipex_searchers_bonus.c pipex_heredoc_bonus.c top_helpers_bonus.c \
 		middle_helpers_bonus.c bottom_helpers_bonus.c \
-		pipex_character_buffer_bonus.c
+		pipex_character_buffer_bonus.c parsing_bonus.c
 SRC_BONUS = $(patsubst %, $(SRCDIR)/%, $(_SRC_BONUS))
 
 _OBJ_BONUS = $(patsubst %.c, %.o, $(_SRC_BONUS))
