@@ -6,7 +6,7 @@
 /*   By: tsankola <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/26 23:25:52 by tsankola          #+#    #+#             */
-/*   Updated: 2023/05/26 23:26:04 by tsankola         ###   ########.fr       */
+/*   Updated: 2023/07/03 15:49:31 by tsankola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include <unistd.h>
@@ -20,6 +20,10 @@
 
 int	is_directory(char *file)
 {
+	// This implementation might actually be wrong. O_DIRECTORY is not supported
+	// in BSD / MacOS documentation (even though it works in my tests). Instead
+	// it would be better to open the file with O_WRONLY flag and then check
+	// for errno value EISDIR / 21.
 	int	fd;
 
 	fd = open(file, O_DIRECTORY);
